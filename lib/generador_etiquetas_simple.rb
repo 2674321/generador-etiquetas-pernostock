@@ -8,7 +8,7 @@ require 'barby/outputter/prawn_outputter'
 require 'tty-progressbar'
 
 $excel_file = ''
-$output_directory = 'C:\\RUTA_DE_SALIDA\\etiquetas'
+$output_directory = nil
 
 def open_excel(file_path)
   if File.extname(file_path) == ".xlsx"
@@ -27,7 +27,7 @@ def generate_barcode_with_text(variable_1, variable_2, progress, output_director
   begin
     codigo_text = "Código: #{variable_1}"
     barcode = Barby::Code128B.new(variable_1)
-    output_file_pdf = "#{$output_directory}codigo_barras_unico.pdf"
+    output_file_pdf = File.join(output_directory, 'codigo_barras_unico.pdf')
     pdf_width = 10 * 28.35
     pdf_height = 5 * 28.35
 

@@ -6,6 +6,9 @@ require 'barby/outputter/prawn_outputter'
 require 'prawn'
 require 'fileutils'
 
+PROJECT_ROOT = File.expand_path('..', __dir__)
+OUTPUT_DIR = File.join(PROJECT_ROOT, 'pdfs')
+
 module MessageHelper
   def self.show_message(message)
     puts message
@@ -114,14 +117,14 @@ class VentanaGTK
       cantidad_etiquetas = @entry_expander2.text.strip.to_i
 
       # Creamos un directorio para guardar los PDFs
-      FileUtils.mkdir_p('pdfs')
+      FileUtils.mkdir_p(OUTPUT_DIR)
 
       cantidad_etiquetas.times do |i|
         code = sheet.cell(i + 1, 1) # Suponiendo que los códigos están en la primera columna de la hoja de cálculo
         barcode = Barby::Code128.new(code)
 
         # Creamos el PDF
-        Prawn::Document.generate("pdfs/etiqueta_#{i + 1}.pdf", page_layout: :portrait, page_size: [75, 28]) do
+        Prawn::Document.generate(File.join(OUTPUT_DIR, "etiqueta_#{i + 1}.pdf"), page_layout: :portrait, page_size: [75, 28]) do
           move_down 10
           barcode.annotate_pdf(self, x: 5, y: cursor - 5, height: 20)
         end

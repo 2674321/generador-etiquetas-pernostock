@@ -25,9 +25,11 @@ Generador de Etiquetas
 
 ## Runtime
 
-- Ruby **3.2.x** (originalmente desarrollado sobre 3.2.x; reproducible con mise en 3.2).
+- Ruby **3.2.x** (originalmente desarrollado sobre 3.2.x; reproducible con mise en 3.2.11).
 - GUI: **GTK3** (`gtk3` gem).
-- Sistema operativo originalmente objetivo: **Windows** (rutas `C:\` en variantes CLI). En Linux, la variante GTK (`bin/main.rb`) funciona con display X11.
+- Sistema operativo originalmente objetivo: **Windows**. En esta iteración se convirtieron
+  las rutas rígidas `C:\...` en rutas **portables** (argumento de CLI, `__dir__`), y la
+  ejecución reproducible quedó verificada en **Linux (X11)** con datos demo.
 
 ## Entrypoint
 

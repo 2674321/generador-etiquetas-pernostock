@@ -46,20 +46,34 @@ barras (Code128) en PDF, leyendo los códigos desde una hoja de cálculo (Excel)
 └── CHANGELOG.md
 ```
 
-## Ejecución
+## Instalación
 
 ```bash
-bundle install
-ruby bin/main.rb
+mise install        # asegura Ruby 3.2 (usa .ruby-version)
+bundle install      # instala las gems declaradas en el Gemfile
+```
+
+## Ejecución (CLI)
+
+```bash
+mise exec -- bundle exec ruby lib/generador_etiquetas_cli.rb data/demo/codigos_demo.xlsx [directorio_salida]
+```
+
+La CLI acepta el archivo de entrada como argumento (ruta relativa o absoluta) y
+escribe el PDF en el directorio de salida (por defecto `salida/` dentro del
+proyecto). Sin argumento muestra la ayuda de uso.
+
+## Ejecución (GUI)
+
+```bash
+mise exec -- bundle exec ruby bin/main.rb   # GUI GTK (requiere display X11)
 ```
 
 > **Entorno DEV:** la reproducción en este PC (Linux/X11, Ruby 3.2 vía mise) está
 > verificada — ver [`docs/DEV-SETUP.md`](docs/DEV-SETUP.md). El core
 > (Excel → Code128 → PDF) se probó con datos demo ficticios (`_scripts/dev/prueba_core.rb`).
 
-> **Nota:** las variantes con ruta fija (`C:\Ruta\Del\Proyecto\...`) fueron diseñadas
-> para el equipo de fábrica original; en un equipo distinto se debe ajustar la ruta de
-> entrada/salida según corresponda.
+> Las rutas de entrada/salida son **portables** (no dependen de rutas Windows fijas).
 
 ## Datos de ejemplo
 
