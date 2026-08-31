@@ -1,0 +1,17 @@
+# Datos comerciales sensibles — NO versionar
+*.xlsx
+*.xls
+
+# Artefactos de entorno / editor
+.ruby-lsp/
+ruby-3.2.1/
+.vscode/
+desktop.ini
+Thumbs.db
+
+# Accesos directos Windows
+*.lnk
+
+# Archivos de salida generados
+pdfs/
+*.pdf

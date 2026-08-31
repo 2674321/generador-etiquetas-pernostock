@@ -1,0 +1,198 @@
+
+                             Planificacion/Avances y caracteristicas de los Programas 20-12-2023.
+
+                          
+
+VER 3.0
+Programa "Seguimiento de baterias" 
+
+Caracteristicas.
+
+   - Programa Modulado en 4 archivos (main, interface_setup, database_operations y utilities) y 
+     1 base de datos.
+     Lo que permite mejorar el rendimiento y mantencion a medida que el programa crece.
+ 
+   - Validador de entrada (Buscador y Registro)
+   - Retroalimentacion
+   - Interfaz bonita y simple
+   - Rendimiento estable
+   - Boton de salida  
+
+   - Depurador en 3/4 archivos
+
+   - Base de datos incorporada 
+
+
+   - Historial de Estado y Cambios de la bateria (P) 
+
+     (  - Un icono de ? al lado de cada resultado que muestre una ventana de registro detallada con
+          lass anteriores ediciones de la bateria )
+
+  
+   - Exportación de Copia de seguridad automatica (P)
+
+
+Funcionalidades.
+
+"Buscar"
+
+    - Permite buscar las columnas; ID (Autoincrementable),Modelo,Serie,Recepcion,Factura,
+      Fecha C,N.C,Fecha N.C,Motivo,Cliente,Vendedor,Recarga,Fecha de envio y Destino. 
+
+    - Posee una id independiente para facilitar busqueda.
+
+    - Uso de mas de un criterio de busqueda//////// EN proceso
+
+      (Puede usar los criterios de; Rango de fechas, estado, vendedor y motivo.
+
+       Los criterios seleccionados se muestran a debajo de la barra de busqueda.
+       
+       Trabajando en la deseleccion de los criterios y belleza de la interfaz)
+
+
+
+"Guardar"
+
+    - Permite guardar los resultados mostrados en 5 tipos de extensiones;  CSV, PDF, TXT, DOCX y JSON.
+
+"Registro"
+    - Permite ingresar nuevos datos (baterias) y sus respectivas columnas.
+    - Validador de entrada 
+
+    - Opcion de agregar una casila con un comentario. (P)
+
+
+"Edición" (sin avance/pendiente) (P) Sin Interfaz
+
+    - Permitiria editar baterias y sus respectivas columnas, para corregir errores, rellenar campos pendientes,etc.
+
+Mejoras menores una vez terminado el programa:
+
+- Ocultar Consola (CMD), una vez terminado el programa
+- Interfaz bonita y simple (P, agrega imagen de fondo difuminada y otras mejoras de interfaz)
+
+///////////////////////////////////////////////////
+
+VER 1.0  (Funcional/Depende del excel / SIN BASE DE DATOS INCORPORADA)
+
+Programa "Generador de etiquetas"
+
+- Puede ser activado repetidamente sin necesidad de ejecutar
+- Validador de entrada 
+- Nombre de archivo unico basado en FC 
+- Retroalimentacion
+- Interfaz bonita, intuitiva y simple 
+- Rendimiento estable 
+- Boton de salida  
+- Estadistica de cantidad de etiquetas generadas(P)
+
+- Base de datos incorporada (P)
+
+
+"Selector de documento"
+
+  - Permite seleccionar el documento a leer (solo lee excel, hojas de calculo y sus respectivas versiones) 
+
+"Selector de destino"
+
+  - Permite seleccionar donde se enviara la etiqueta o etiquetas creadas.(carpeta) 
+
+"Generar etiqueta"
+
+  - Genera 1 etiqueta con el respectivo codigo ingresado en el input. 
+  - Ventana (emergente o parte de la principal) para que muestre errores/codigos repetidos/coincidencias (P)
+
+"Historial"
+
+  - Un historial con las etiquetas creadas durante la ejecucion del programa.(P)
+
+"Salir"
+  - Permite salir directamente del programa.
+
+
+
+
+
+///////////////////////////////////////////////////////
+
+
+Objetivo final 
+
+Que el programa combinado tenga base de datos incorporada  para funcionar idependientemente y evitar hacer reenvios de documentos. 
+
+Crear el ejecutable del programa terminado para ser exportado a los pc´s de los encargados.
+
+Tendria que procesar las 2 bases de datos (que serian exportadas del programa) para evitar fallas y/ discrepancias, cada cierto. tiempo
+
+
+////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+        VERSIONES ANTERIORES
+////////////////////////////////////////////////////////
+
+VER 2.0 19-12-23
+Programa "Seguimiento de baterias"
+
+-Validador de entrada (L)
+-Retroalimentacion (L)
+-Puede ser activado repetidamente sin necesidad de ejecutar (L)
+-Interfaz bonita, intuitiva y simple (L)
+-Rendimiento estable (L)
+-Boton de salida  (L)
+
+
+Base de datos incorporada (L)
+Insercion de datos (L) 
+CONEXION (L)
+DATOS(L)
+
+
+
+"Buscar" (CONSULTA B.DATOS incorporada):
+
+-Permite buscar las columnas; Modelo,Serie,Recepcion,Factura,Fecha C,N.C,Fecha N.C,Motivo,Cliente,Vendedor,Recarga,Fecha de envio y Destino. (L)
+-Posee una id independiente para facilitar busqueda.
+
+-Uso de mas de un criterio de busqueda (P)/////////// LUEGO
+
+-Mostrara todas las coincidencias encontradas. (L)
+
+
+"Guardar":
+  - Permite guardar los resultados mostrados en 5 tipos de extensiones  .csv,pdf,.txt,.DOCX y .JSON (L)
+  - Agregar mas tipos extensiones al guardado (L)
+
+
+"Registro": (en proceso) Con interfaz
+
+  - Permite ingresar nuevas baterias a la base de dato de recepcion de baterias (p) ////////// En progreso
+
+  - Opcion de agregar una casila con un comentario. (p)
+
+
+
+"Edición": (sin avance/pendiente) (p) Sin Interfaz
+
+  - Permitiria editar baterias y sus respectivas columnas, para corregir errores, rellenar campos pendientes,etc.
+
+
+
+/////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+

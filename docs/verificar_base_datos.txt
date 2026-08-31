@@ -1,0 +1,18 @@
+require 'sqlite3'
+
+# Define el nombre de la base de datos
+DB_NAME = 'base_seg.db'
+
+# Conecta a la base de datos
+db = SQLite3::Database.new(DB_NAME)
+
+# Consulta para obtener la información de la tabla
+table_info = db.execute("PRAGMA table_info(nueva_tabla)")
+
+# Muestra la información de la tabla
+table_info.each do |column_info|
+  puts "Columna: #{column_info[1]}, Tipo de dato: #{column_info[2]}"
+end
+
+# Cierra la conexión a la base de datos
+db.close if db

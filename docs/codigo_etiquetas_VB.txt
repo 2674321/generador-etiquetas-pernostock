@@ -1,0 +1,58 @@
+Private Declare Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" (ByVal hwnd As Long, _
+    ByVal lpOperation As String, ByVal lpFile As String, ByVal lpParameters As String, _
+    ByVal lpDirectory As String, ByVal nShowCmd As Long) As Long
+
+Private Declare Function FindWindow Lib "user32" Alias "FindWindowA" (ByVal lpClassName As String, ByVal lpWindowName As String) As Long
+Private Declare Function SetWindowPos Lib "user32" (ByVal hwnd As Long, ByVal hWndInsertAfter As Long, ByVal x As Long, _
+    ByVal y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long) As Long
+
+Private Const SW_SHOWNORMAL As Long = 1
+Private Const HWND_TOPMOST = -1
+Private Const SWP_NOMOVE = &H2
+Private Const SWP_NOSIZE = &H1
+Private Const SWP_SHOWWINDOW = &H40
+
+Private Sub Form_Load()
+    ' Ruta al explorador de archivos
+    Dim explorerPath As String
+    explorerPath = "C:\Windows\explorer.exe"
+    
+    ' Directorio al que quieres que apunte el explorador de archivos
+    Dim directoryPath As String
+    directoryPath = "C:\RUTA_DE_SALIDA\boletas" ' Cambia la ruta a tu directorio deseado
+    
+    ' Abrir el explorador de archivos con la ruta especificada
+    ShellExecute Me.hwnd, "open", explorerPath, directoryPath, vbNullString, SW_SHOWNORMAL
+    
+    ' Obtener el handle de la ventana del explorador de archivos
+    Dim handleExplorer As Long
+    handleExplorer = FindWindow("CabinetWClass", vbNullString)
+    
+    ' Asegurarse de que la ventana del explorador esté en primer plano
+    If handleExplorer <> 0 Then
+        SetWindowPos handleExplorer, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_SHOWWINDOW
+    End If
+    
+    ' Ejecutar un script Ruby desde VB5
+    
+    Dim scriptPath As String
+    Dim rubyInterpreterPath As String
+    Dim command As String
+    
+    ' Ruta al script Ruby
+    scriptPath = "C:\RUTA_AL_SCRIPT\Programa terminado 2.rb"
+    
+    ' Ruta al intérprete de Ruby
+    rubyInterpreterPath = """C:\Ruby32-x64\bin\ruby.exe"""
+    
+    ' Comando para ejecutar el script Ruby
+    command = rubyInterpreterPath & " " & """" & scriptPath & """"
+    
+    ' Ejecutar el script Ruby utilizando el intérprete de Ruby
+    Shell command, vbNormalFocus
+End Sub
+
+
+Private Sub Label1_Click()
+
+End Sub
