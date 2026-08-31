@@ -53,6 +53,10 @@ bundle install
 ruby bin/main.rb
 ```
 
+> **Entorno DEV:** la reproducción en este PC (Linux/X11, Ruby 3.2 vía mise) está
+> verificada — ver [`docs/DEV-SETUP.md`](docs/DEV-SETUP.md). El core
+> (Excel → Code128 → PDF) se probó con datos demo ficticios (`_scripts/dev/prueba_core.rb`).
+
 > **Nota:** las variantes con ruta fija (`C:\Ruta\Del\Proyecto\...`) fueron diseñadas
 > para el equipo de fábrica original; en un equipo distinto se debe ajustar la ruta de
 > entrada/salida según corresponda.

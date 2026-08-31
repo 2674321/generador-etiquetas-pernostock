@@ -2,6 +2,10 @@
 *.xlsx
 *.xls
 
+# Datos de demo / temporales
+data/demo/*.xlsx
+tmp/
+
 # Artefactos de entorno / editor
 .ruby-lsp/
 ruby-3.2.1/
