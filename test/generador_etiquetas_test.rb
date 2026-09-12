@@ -111,6 +111,69 @@ module GeneradorEtiquetas
     end
   end
 
+  class TestLoteEtiqueta < Minitest::Test
+    def test_grarilla_una_etiqueta_a4
+      columnas, filas, por_hoja = GeneradorEtiquetas::LoteEtiqueta.grarilla(
+        ancho_pagina_pt: GeneradorEtiquetas::LoteEtiqueta::A4_ANCHO_PT,
+        alto_pagina_pt: GeneradorEtiquetas::LoteEtiqueta::A4_ALTO_PT,
+        ancho_etiqueta_pt: GeneradorEtiquetas::Dimensiones.pt(100),
+        alto_etiqueta_pt: GeneradorEtiquetas::Dimensiones.pt(50)
+      )
+      assert_operator columnas, :>=, 1
+      assert_operator filas, :>=, 4, 'cabrían 5 filas de 50 mm en una A4'
+      assert_equal columnas * filas, por_hoja
+    end
+
+    def test_grarilla_etiqueta_pequena_multiplica_celdas
+      columnas, filas, = GeneradorEtiquetas::LoteEtiqueta.grarilla(
+        ancho_pagina_pt: GeneradorEtiquetas::LoteEtiqueta::A4_ANCHO_PT,
+        alto_pagina_pt: GeneradorEtiquetas::LoteEtiqueta::A4_ALTO_PT,
+        ancho_etiqueta_pt: GeneradorEtiquetas::Dimensiones.pt(40),
+        alto_etiqueta_pt: GeneradorEtiquetas::Dimensiones.pt(20)
+      )
+      assert_operator columnas, :>=, 4
+      assert_operator filas, :>=, 9
+    end
+
+    def test_celda_no_se_sale_de_la_hoja
+      ancho = GeneradorEtiquetas::Dimensiones.pt(100)
+      alto = GeneradorEtiquetas::Dimensiones.pt(50)
+      columnas, filas, _ = GeneradorEtiquetas::LoteEtiqueta.grarilla(
+        ancho_pagina_pt: GeneradorEtiquetas::LoteEtiqueta::A4_ANCHO_PT,
+        alto_pagina_pt: GeneradorEtiquetas::LoteEtiqueta::A4_ALTO_PT,
+        ancho_etiqueta_pt: ancho, alto_etiqueta_pt: alto
+      )
+      (0...5).each do |i|
+        x, y = GeneradorEtiquetas::LoteEtiqueta.celda(
+          i, columnas,
+          ancho_etiqueta_pt: ancho, alto_etiqueta_pt: alto
+        )
+        assert_operator x + ancho, :<=, GeneradorEtiquetas::LoteEtiqueta::A4_ANCHO_PT
+        assert_operator y + alto, :<=, GeneradorEtiquetas::LoteEtiqueta::A4_ALTO_PT
+      end
+    end
+
+    def test_generar_lote_a4
+      etiquetas = %w[PET-1001 PET-1002 PET-1003 PET-1004 PET-1005].map do |codigo|
+        GeneradorEtiquetas::Etiqueta.new(codigo: codigo, descripcion: "DESC #{codigo}")
+      end
+      Dir.mktmpdir('lote_test') do |dir|
+        ruta = File.join(dir, 'lote_A4.pdf')
+        columnas, filas, hojas = GeneradorEtiquetas::LoteEtiqueta.generar(
+          etiquetas, ruta,
+          ancho_etiqueta_pt: GeneradorEtiquetas::Dimensiones.pt(100),
+          alto_etiqueta_pt: GeneradorEtiquetas::Dimensiones.pt(50)
+        )
+        assert_equal 1, hojas
+        assert_operator columnas, :>=, 1
+        assert_operator filas, :>=, 5
+        ancho_firma = %r{/MediaBox \[\d+ \d+ ([0-9.]+)(?: |\])}.match(File.binread(ruta))&.captures&.first
+        assert_in_delta GeneradorEtiquetas::Dimensiones.pt(210), ancho_firma.to_f, 0.1,
+                        'el lote es A4 (210 mm de ancho)'
+      end
+    end
+  end
+
   class TestMaquina < Minitest::Test
     ROOT = File.expand_path('..', __dir__)
 

@@ -50,23 +50,25 @@ selector_hoja = app.instance_variable_get(:@selector_hoja)
 comprobar(!selector_hoja.active_text.to_s.include?('1ª'),
           "el selector de hoja lista las hojas del archivo (texto=#{selector_hoja.active_text.inspect})")
 
-# 3. Salida a tmp y generación en hilo.
+# 3. Salida a tmp, lote A4 activado y generación en hilo.
 salida = Dir.mktmpdir('gui_smoke')
 app.instance_variable_get(:@entrada_salida).text = salida
+app.instance_variable_get(:@caso_lote).active = true
 app.send(:generar)
 
 espera = 0
 hasta = 30
-while espera < hasta && app.instance_variable_get(:@resultados).size < 5
+while espera < hasta && app.instance_variable_get(:@resultados).size < 6
   Gtk.main_iteration_do(false) while Gtk.events_pending?
   sleep 0.1
   espera += 1
 end
 
 resultados = app.instance_variable_get(:@resultados)
-comprobar(resultados.size == 5, "generar() rellena 5 resultados (== #{resultados.size})")
-comprobar(resultados.all?(&:generada?), 'los 5 están en estado :generada')
-comprobar(Dir[File.join(salida, '*.pdf')].size == 5, 'se escriben 5 PDFs en salida')
+comprobar(resultados.size == 6, "generar() rellena 6 resultados (== #{resultados.size})")
+comprobar(resultados.count(&:generada?) == 5, '5 están en estado :generada')
+comprobar(resultados.any?(&:lote?), 'hay una fila de lote A4')
+comprobar(Dir[File.join(salida, '*.pdf')].size == 6, 'se escriben 6 PDFs (5 únicos + lote_A4.pdf)')
 
 # 4. TreeView rellenado y selección de la primera fila.
 almacen = app.instance_variable_get(:@almacen)

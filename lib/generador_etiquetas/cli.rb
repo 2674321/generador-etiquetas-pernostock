@@ -24,7 +24,7 @@ module GeneradorEtiquetas
         ancho_mm: nil, alto_mm: nil,
         salida: nil, filtrar: nil, cantidad: nil,
         permitir_duplicados: false, quiet: false,
-        hoja: 0, listar_hojas: false
+        hoja: 0, listar_hojas: false, lote: false
       }
       @argv = argv.dup
     end
@@ -59,6 +59,7 @@ module GeneradorEtiquetas
                                  cantidad: opciones[:cantidad],
                                  permitir_duplicados: opciones[:permitir_duplicados],
                                  hoja: opciones[:hoja],
+                                 lote: opciones[:lote],
                                  en_progreso: progreso&.callback)
       progreso&.terminar
       transcurrido = Process.clock_gettime(Process::CLOCK_MONOTONIC) - inicio
@@ -129,6 +130,9 @@ module GeneradorEtiquetas
         opts.on('--todas', 'No omitir códigos duplicados (procesa cada fila)') do
           opciones[:permitir_duplicados] = true
         end
+        opts.on('--lote', 'Además genera lote_A4.pdf con las etiquetas en cuadrícula') do
+          opciones[:lote] = true
+        end
         opts.on('--ancho-mm N', Float, "Ancho de etiqueta en mm (por defecto #{Dimensiones::ANCHO_POR_DEFECTO_MM})") do |v|
           opciones[:ancho_mm] = v
         end
@@ -152,7 +156,7 @@ module GeneradorEtiquetas
 
     def mostrar(reporte, transcurrido: nil)
       unless opciones[:quiet]
-        orden = { generada: 'PDF', duplicada: 'OMIT', invalida: 'INVÁLIDO', error: 'ERROR' }
+        orden = { generada: 'PDF', lote: 'LOTE', duplicada: 'OMIT', invalida: 'INVÁLIDO', error: 'ERROR' }
         reporte.resultados.each do |r|
           etiqueta = orden.fetch(r.estado, r.estado.to_s)
           linea = format('%-9s | %-22s | %s', etiqueta, r.codigo.to_s, r.descripcion.to_s)
@@ -185,6 +189,7 @@ module GeneradorEtiquetas
               --ancho-mm N      Ancho de etiqueta en mm (por defecto #{Dimensiones::ANCHO_POR_DEFECTO_MM})
               --alto-mm N       Alto de etiqueta en mm (por defecto #{Dimensiones::ALTO_POR_DEFECTO_MM})
           -q, --quiet           Solo resumen
+              --lote            Además genera lote_A4.pdf (cuadrícula de etiquetas)
           -h, --help            Esta ayuda
 
         Ejemplos:
@@ -192,6 +197,7 @@ module GeneradorEtiquetas
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --salida salida --buscar PET-10
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --listar-hojas
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --hoja Codigos
+          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote
       TXT
     end
   end

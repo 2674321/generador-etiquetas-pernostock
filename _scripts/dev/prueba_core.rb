@@ -80,6 +80,24 @@ else
   puts "  (pdfinfo no disponible; se omite esta comprobación)"
 end
 
+puts "== Lote A4 (cuadrícula) =="
+rime = maquina.procesar(DEMO, lote: true)
+comprobar(rime.lotes == 1, "el reporte incluye 1 lote (== #{rime.lotes})")
+ruta_lote = File.join(SALIDA, GeneradorEtiquetas::LoteEtiqueta::NOMBRE_ARCHIVO)
+comprobar(File.file?(ruta_lote), "se crea #{GeneradorEtiquetas::LoteEtiqueta::NOMBRE_ARCHIVO}")
+if File.exist?(ruta_lote)
+  binario = File.binread(ruta_lote)
+  dimensiones_lote = codigo_dupla = nil
+  m = %r{/MediaBox \[\d+ \d+ ([0-9.]+) ([0-9.]+)\]}.match(binario)
+  dimensiones_lote = m && [m[1].to_f.round(2), m[2].to_f.round(2)]
+  comprobar(dimensiones_lote == [595.28, 841.89], "lote es A4 (== #{dimensiones_lote.inspect})")
+  if system("which", "pdftotext", out: File::NULL, err: File::NULL)
+    texto = `pdftotext -layout #{ruta_lote} -`
+    codigo_dupla = %w[PET-1001 PET-1002 PET-1003 PET-1004 PET-1005].all? { |c| texto.include?(c) }
+    comprobar(codigo_dupla, "la hoja A4 contiene los 5 códigos")
+  end
+end
+
 puts "== Callback de progreso =="
 avances = []
 maquina.procesar(DEMO, en_progreso: ->(hechas, total) { avances << [hechas, total] })

@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.1.0] - 2026-09-12
+
+### Añadido
+- **Lote A4 imprimible**: `Libro → Maquina(lote: true) → lote_A4.pdf` con todas las
+  etiquetas generadas en una cuadrícula sobre hojas A4 (varias hojas si no caben).
+  Reutiliza `LayoutEtiqueta` + `DibujoEtiqueta` + `DibujadorPdf` (con origen), por lo
+  que cada celda del lote tiene la misma composición que el PDF individual.
+  - Nuevo módulo `LoteEtiqueta` (`lib/generador_etiquetas/lote.rb`): `grarilla`,
+    `celda` y `generar` (márgenes/hueco configurables; A4 210×297 mm por defecto).
+  - `DibujadorPdf` acepta ahora `origen_x:/origen_y:` (top-down) para dibujar en
+    cualquier celda de una hoja.
+  - CLI: opción `--lote`; fila `LOTE` en el reporte (con su ruta) y resumen
+    "Hoja A4 de lote".
+  - GUI: casilla **"Lote A4"** en la barra de opciones; la fila LOTE se lista en
+    resultados (su selección abre el lote; sin vista previa de etiqueta simple).
+  - Tests: 4 casos minitest de la cuadrícula + verificación A4 en el smoke test
+    (`pdfinfo`/`pdftotext`: MediaBox 595.28×841.89 y los 5 códigos presentes);
+    sonda GUI ampliada a 9 comprobaciones (incluye lote).
+
 ## [1.0.3] - 2026-09-12
 
 ### Añadido

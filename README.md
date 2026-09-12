@@ -31,6 +31,9 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
   `--alto-mm`, `--quiet`, barra de **progreso** en terminal y resumen con tiempo.
 - **PDFs con metadatos** (código/descripción/versión) y **vista previa** en la GUI
   con la misma geometría que se imprime.
+- **Lote A4**: `--lote` (CLI) o casilla **"Lote A4"** (GUI) genera
+  `lote_A4.pdf`, una hoja imprimible con todas las etiquetas en cuadrícula
+  (varias páginas si no caben).
 - **Deduplicación** por código (se omite en el PDF; se informa en el reporte),
   **validación Code128** (solo ASCII imprimible), **omisión automática de la cabecera**
   y de **filas vacías** de la hoja, y **selección de hoja** (GUI/CLI).
@@ -91,6 +94,7 @@ ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
 ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --salida salida --buscar PET-10
 ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --listar-hojas
 ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --hoja Secundaria
+ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote
 ruby bin/etiquetas_cli --help
 ```
 
@@ -106,7 +110,7 @@ ruby bin/main.rb   # GUI GTK (requiere display X11)
 Flujo:
 1. Seleccionar la hoja de cálculo o CSV (`.xlsx` / `.xls` / `.xlsm` / `.ods` / `.csv`).
 2. Con la hoja de **Hoja** elegir si se desea (se actualiza al cambiar el archivo).
-3. Ajustar opciones (filtro, cantidad, duplicados, tamaño en mm) y pulsar **Generar etiquetas**.
+3. Ajustar opciones (filtro, cantidad, duplicados, tamaño en mm, **lote A4**) y pulsar **Generar etiquetas**.
 4. En el **panel de resultados**, cada fila muestra su estado; al seleccionarla se dibuja
    la **vista previa** (misma geometría que el PDF) y se puede abrir el PDF generado.
 

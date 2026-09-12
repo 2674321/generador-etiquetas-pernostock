@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
 module GeneradorEtiquetas
-  # Una fila procesada por la máquina. `estado` ∈
-  #   :generada   → PDF creado correctamente
-  #   :duplicada  → mismo código ya generado (se omite)
-  #   :invalida   → código vacío o no imprimible como Code128
-  #   :error      → fallo al generar el PDF
+# Una fila procesada por la máquina. `estado` ∈
+#   :generada   → PDF creado correctamente
+#   :lote       → PDF A4 de cuadrícula creado (fila 0)
+#   :duplicada  → mismo código ya generado (se omite)
+#   :invalida   → código vacío o no imprimible como Code128
+#   :error      → fallo al generar el PDF
   Resultado = Struct.new(:fila, :codigo, :descripcion, :estado, :archivo, :error, keyword_init: true) do
     def generada?   = estado == :generada
+    def lote?       = estado == :lote
     def duplicada?  = estado == :duplicada
     def invalida?   = estado == :invalida
     def con_error?  = estado == :error
@@ -30,6 +32,7 @@ module GeneradorEtiquetas
     end
 
     def generadas = resultados.count(&:generada?)
+    def lotes = resultados.count(&:lote?)
     def duplicadas = resultados.count(&:duplicada?)
     def invalidas = resultados.count(&:invalida?)
     def errores = resultados.count(&:con_error?)
@@ -38,6 +41,7 @@ module GeneradorEtiquetas
     def to_s
       lineas = []
       lineas << "Etiquetas generadas: #{generadas}"
+      lineas << "Hoja A4 de lote: #{lotes}"        if lotes.positive?
       lineas << "Duplicados omitidos: #{duplicadas}" if duplicadas.positive?
       lineas << "Inválidas omitidas: #{invalidas}"     if invalidas.positive?
       lineas << "Con error: #{errores}"              if errores.positive?

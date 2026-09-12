@@ -10,6 +10,7 @@ module GeneradorEtiquetas
   class Aplicacion
     ETIQUETAS_ESTADO = {
       generada: 'PDF',
+      lote: 'LOTE',
       duplicada: 'OMIT.',
       invalida: 'INVÁL.',
       error: 'ERROR'
@@ -95,6 +96,9 @@ module GeneradorEtiquetas
       @caso_todas = Gtk::CheckButton.new('Incluir duplicados')
       @caso_todas.tooltip_text = 'Procesa cada fila aunque el código ya esté generado'
 
+      @caso_lote = Gtk::CheckButton.new('Lote A4')
+      @caso_lote.tooltip_text = 'Además genera lote_A4.pdf con las etiquetas en cuadrícula'
+
       ajuste_ancho = Gtk::Adjustment.new(Dimensiones::ANCHO_POR_DEFECTO_MM, 10, 300, 1, 5, 0)
       @campo_ancho = Gtk::SpinButton.new(ajuste_ancho, 1, 1)
       ajuste_alto = Gtk::Adjustment.new(Dimensiones::ALTO_POR_DEFECTO_MM, 10, 300, 1, 5, 0)
@@ -109,6 +113,7 @@ module GeneradorEtiquetas
       barra.pack_start(@campo_filtrar, expand: false)
       barra.pack_start(@campo_cantidad, expand: false)
       barra.pack_start(@caso_todas, expand: false)
+      barra.pack_start(@caso_lote, expand: false)
       barra.pack_start(@contenedor_hojas, expand: false)
       barra.pack_start(etiqueta_tam, expand: false)
       barra.pack_start(@campo_ancho, expand: false)
@@ -230,6 +235,7 @@ module GeneradorEtiquetas
             cantidad: @campo_cantidad.value.to_i.zero? ? nil : @campo_cantidad.value.to_i,
             permitir_duplicados: @caso_todas.active?,
             hoja: hoja,
+            lote: @caso_lote.active?,
             en_progreso: proc do |hechas, total|
               fraccion = total.zero? ? 0.0 : hechas.to_f / total
               GLib::Idle.add { @barra_progreso.fraction = fraccion; false }
@@ -291,6 +297,13 @@ module GeneradorEtiquetas
       unless r
         @info_previa.text = 'Selecciona un elemento de la lista para ver la etiqueta.'
         @boton_abrir_pdf.sensitive = false
+        @dibujo.queue_draw
+        return
+      end
+
+      if r.lote?
+        @info_previa.text = "#{r.codigo} — #{r.descripcion}. Es la cuadrícula A4 de todo el lote."
+        @boton_abrir_pdf.sensitive = true
         @dibujo.queue_draw
         return
       end
