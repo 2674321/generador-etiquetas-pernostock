@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.3.0] - 2026-09-12
+
+### Añadido
+- **Hoja del lote personalizada**: `--lote-pagina ANCHOxALTO` (mm) en el CLI y
+  `Maquina#procesar(lote_pagina_pt: [ancho, alto])` en la API. La cuadrícula y el
+  PDF se ajustan al tamaño pedido; en el reporte, la descripción del lote indica
+  la hoja cuando no es A4 (p. ej. `5 etiquetas · hoja 150.0×100.0 mm`).
+- **Paginación de la vista previa del lote** en la GUI: `PanelHoja` acepta
+  `pagina:` (0-based), expone `paginas`/`margen_pt`/`hueco_pt` y muestra las
+  etiquetas de la página elegida. Al seleccionar la fila "LOTE A4" aparece un
+  selector **"Pág. del lote"** (solo visible si hay más de una hoja) y el pie
+  indica "Página N de M".
+- **Margen y separación del lote editables en la GUI**: dos spinners
+  "Sep. lote (mm)" y "Margen (mm)" junto a la casilla "Lote A4"; se pasan a la
+  máquina y a la vista previa (lote y página se recalculan al cambiar).
+- Núcleo: helpers `LoteEtiqueta.por_hoja` y `LoteEtiqueta.paginas`.
+- Tests: `TestLotePaginas` (nº de páginas, por_hoja), `TestPanelHoja`
+  (multi-página, página vacía, dibujo por página), `lote con página
+  personalizada` en `TestMaquina`; sonda GUI ampliada a **19 comprobaciones**
+  (spinners de lote, margen→previa, 2 páginas con 8 etiquetas, dibujo de la
+  página 2).
+
 ## [1.2.0] - 2026-09-12
 
 ### Añadido

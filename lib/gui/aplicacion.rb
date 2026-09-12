@@ -100,6 +100,14 @@ module GeneradorEtiquetas
       @caso_lote = Gtk::CheckButton.new('Lote A4')
       @caso_lote.tooltip_text = 'Además genera lote_A4.pdf con las etiquetas en cuadrícula'
 
+      ajuste_margen = Gtk::Adjustment.new(LoteEtiqueta::MARGEN_PT.round, 0, 100, 0.5, 2, 0)
+      @campo_margen_lote = Gtk::SpinButton.new(ajuste_margen, 0.5, 1)
+      @campo_margen_lote.tooltip_text = 'Margen de la hoja del lote (mm)'
+
+      ajuste_hueco = Gtk::Adjustment.new(LoteEtiqueta::HUECO_PT.round, 0, 100, 0.5, 2, 0)
+      @campo_hueco_lote = Gtk::SpinButton.new(ajuste_hueco, 0.5, 1)
+      @campo_hueco_lote.tooltip_text = 'Separación entre etiquetas del lote (mm)'
+
       ajuste_ancho = Gtk::Adjustment.new(Dimensiones::ANCHO_POR_DEFECTO_MM, 10, 300, 1, 5, 0)
       @campo_ancho = Gtk::SpinButton.new(ajuste_ancho, 1, 1)
       ajuste_alto = Gtk::Adjustment.new(Dimensiones::ALTO_POR_DEFECTO_MM, 10, 300, 1, 5, 0)
@@ -110,11 +118,17 @@ module GeneradorEtiquetas
       refrescar_hojas
 
       etiqueta_tam = Gtk::Label.new('Tamaño (mm):')
+      etiqueta_hueco = Gtk::Label.new('Sep. lote (mm):')
+      etiqueta_margen = Gtk::Label.new('Margen (mm):')
 
       barra.pack_start(@campo_filtrar, expand: false)
       barra.pack_start(@campo_cantidad, expand: false)
       barra.pack_start(@caso_todas, expand: false)
       barra.pack_start(@caso_lote, expand: false)
+      barra.pack_start(etiqueta_hueco, expand: false)
+      barra.pack_start(@campo_hueco_lote, expand: false)
+      barra.pack_start(etiqueta_margen, expand: false)
+      barra.pack_start(@campo_margen_lote, expand: false)
       barra.pack_start(@contenedor_hojas, expand: false)
       barra.pack_start(etiqueta_tam, expand: false)
       barra.pack_start(@campo_ancho, expand: false)
@@ -187,11 +201,19 @@ module GeneradorEtiquetas
       @info_previa.selectable = true
       @info_previa.xalign = 0.0
 
+      @contenedor_pagina = Gtk::Box.new(:horizontal, 4)
+      @contenedor_pagina.no_show_all = true
+      @contenedor_pagina.pack_start(Gtk::Label.new('Pág. del lote:'), expand: false)
+      ajuste_pagina = Gtk::Adjustment.new(1, 1, 1, 1, 1, 0)
+      @selector_pagina = Gtk::SpinButton.new(ajuste_pagina, 1, 0)
+      @contenedor_pagina.pack_start(@selector_pagina, expand: false)
+
       @boton_abrir_pdf = Gtk::Button.new(label: 'Abrir el PDF generado')
       @boton_abrir_pdf.sensitive = false
 
       caja.pack_start(@dibujo, expand: true)
       caja.pack_start(@info_previa, expand: false)
+      caja.pack_start(@contenedor_pagina, expand: false)
       caja.pack_start(@boton_abrir_pdf, expand: false)
       caja
     end
@@ -201,6 +223,12 @@ module GeneradorEtiquetas
       @boton_abrir_pdf.signal_connect('clicked') { abrir_pdf_seleccionado }
       @vista.selection.signal_connect('changed') { actualizar_previa }
       @selector_archivo.signal_connect('file-set') { refrescar_hojas }
+      @selector_pagina.signal_connect('value-changed') do
+        if @hoja_previo
+          @hoja_previo = construir_panel_hoja
+          @dibujo.queue_draw
+        end
+      end
     end
 
     # ---- Generación -------------------------------------------------------
@@ -237,6 +265,8 @@ module GeneradorEtiquetas
             permitir_duplicados: @caso_todas.active?,
             hoja: hoja,
             lote: @caso_lote.active?,
+            lote_margen_pt: Dimensiones.pt(@campo_margen_lote.value.to_f),
+            lote_hueco_pt: Dimensiones.pt(@campo_hueco_lote.value.to_f),
             en_progreso: proc do |hechas, total|
               fraccion = total.zero? ? 0.0 : hechas.to_f / total
               GLib::Idle.add { @barra_progreso.fraction = fraccion; false }
@@ -305,11 +335,15 @@ module GeneradorEtiquetas
 
       if r.lote?
         @hoja_previo = construir_panel_hoja
-        @info_previa.text = "#{r.codigo} — #{r.descripcion}. Vista previa de la primera hoja A4."
+        @info_previa.text = "#{r.codigo} — #{r.descripcion}. " \
+                            "#{@hoja_previo ? "Página #{@selector_pagina.value.to_i} de #{@hoja_previo.paginas}" : 'Sin vista previa'}."
         @boton_abrir_pdf.sensitive = true
         @dibujo.queue_draw
         return
       end
+
+      @contenedor_pagina.hide
+      @selector_pagina.value = 1
 
       etiqueta = Etiqueta.new(codigo: r.codigo, descripcion: r.descripcion, fila: r.fila)
       if etiqueta.codigo_valido?
@@ -335,10 +369,28 @@ module GeneradorEtiquetas
       end
       return nil if etiquetas.empty?
 
+      ancho_pt = Dimensiones.pt(@campo_ancho.value.to_f)
+      alto_pt = Dimensiones.pt(@campo_alto.value.to_f)
+      margen_pt = Dimensiones.pt(@campo_margen_lote.value.to_f)
+      hueco_pt = Dimensiones.pt(@campo_hueco_lote.value.to_f)
+      total_paginas = LoteEtiqueta.paginas(etiquetas.size,
+                                           ancho_pagina_pt: LoteEtiqueta::A4_ANCHO_PT,
+                                           alto_pagina_pt: LoteEtiqueta::A4_ALTO_PT,
+                                           ancho_etiqueta_pt: ancho_pt,
+                                           alto_etiqueta_pt: alto_pt,
+                                           margen_pt: margen_pt, hueco_pt: hueco_pt)
+      ajuste = @selector_pagina.adjustment
+      ajuste.upper = [total_paginas, 1].max
+      ajuste.value = [[ajuste.value.to_i, total_paginas].min, 1].max
+      pagina = [ajuste.value.to_i - 1, 0].max
+
+      @contenedor_pagina.show_all if total_paginas > 1
+      @contenedor_pagina.hide if total_paginas <= 1
+
       PanelHoja.new(
         etiquetas,
-        ancho_etiqueta_pt: Dimensiones.pt(@campo_ancho.value.to_f),
-        alto_etiqueta_pt: Dimensiones.pt(@campo_alto.value.to_f)
+        ancho_etiqueta_pt: ancho_pt, alto_etiqueta_pt: alto_pt,
+        margen_pt: margen_pt, hueco_pt: hueco_pt, pagina: pagina
       )
     end
 

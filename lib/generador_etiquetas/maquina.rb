@@ -28,9 +28,11 @@ module GeneradorEtiquetas
     #                        generadas en cuadrícula sobre hojas A4.
     #   lote_margen_pt    → margen de la hoja del lote (pt; defecto LoteEtiqueta::MARGEN_PT).
     #   lote_hueco_pt     → separación entre celdas del lote (pt; defecto LoteEtiqueta::HUECO_PT).
+    #   lote_pagina_pt    → [ancho, alto] de la hoja del lote (pt; por defecto A4).
     def procesar(ruta, filtrar: nil, cantidad: nil, permitir_duplicados: false,
                  omitir_encabezado: true, hoja: 0, en_progreso: nil, lote: false,
-                 lote_margen_pt: LoteEtiqueta::MARGEN_PT, lote_hueco_pt: LoteEtiqueta::HUECO_PT)
+                 lote_margen_pt: LoteEtiqueta::MARGEN_PT, lote_hueco_pt: LoteEtiqueta::HUECO_PT,
+                 lote_pagina_pt: nil)
       filas, _omitio_encabezado = Libro.cargar(ruta,
                                                omitir_encabezado: omitir_encabezado,
                                                hoja: hoja)
@@ -76,7 +78,7 @@ module GeneradorEtiquetas
         en_progreso&.call(indice + 1, total)
       end
 
-      generar_lote(reporte, generadas_etiquetas, lote_margen_pt, lote_hueco_pt) if lote
+      generar_lote(reporte, generadas_etiquetas, lote_margen_pt, lote_hueco_pt, lote_pagina_pt) if lote
 
       reporte
     end
@@ -86,15 +88,26 @@ module GeneradorEtiquetas
     # Genera el PDF de lote A4 con las etiquetas ya generadas y lo añade al
     # reporte como un resultado más (filas: 0). Con cero etiquetas no lo crea.
     def generar_lote(reporte, etiquetas, margen_pt = LoteEtiqueta::MARGEN_PT,
-                   hueco_pt = LoteEtiqueta::HUECO_PT)
+                   hueco_pt = LoteEtiqueta::HUECO_PT, pagina_pt = nil)
       return if etiquetas.empty?
 
+      pagina_pt ||= [LoteEtiqueta::A4_ANCHO_PT, LoteEtiqueta::A4_ALTO_PT]
+      ancho_pagina_pt, alto_pagina_pt = pagina_pt
+      personalizada = pagina_pt != [LoteEtiqueta::A4_ANCHO_PT, LoteEtiqueta::A4_ALTO_PT]
+
       ruta_lote = File.join(salida, LoteEtiqueta::NOMBRE_ARCHIVO)
+      descripcion = +"#{etiquetas.size} etiquetas"
+      if personalizada
+        descripcion << format(' · hoja %.1f×%.1f mm',
+                              ancho_pagina_pt / Dimensiones::MM_A_PT,
+                              alto_pagina_pt / Dimensiones::MM_A_PT)
+      end
       resultado = Resultado.new(fila: 0, codigo: 'LOTE A4',
-                                descripcion: "#{etiquetas.size} etiquetas",
+                                descripcion: descripcion,
                                 estado: :error, archivo: ruta_lote)
       begin
         LoteEtiqueta.generar(etiquetas, ruta_lote,
+                             ancho_pagina_pt: ancho_pagina_pt, alto_pagina_pt: alto_pagina_pt,
                              ancho_etiqueta_pt: ancho_pt, alto_etiqueta_pt: alto_pt,
                              margen_pt: margen_pt, hueco_pt: hueco_pt)
         resultado.estado = :lote

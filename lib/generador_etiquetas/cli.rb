@@ -25,7 +25,7 @@ module GeneradorEtiquetas
         salida: nil, filtrar: nil, cantidad: nil,
         permitir_duplicados: false, quiet: false,
         hoja: 0, listar_hojas: false, lote: false,
-        lote_margen_mm: nil, lote_hueco_mm: nil
+        lote_margen_mm: nil, lote_hueco_mm: nil, lote_pagina: nil
       }
       @argv = argv.dup
     end
@@ -63,6 +63,7 @@ module GeneradorEtiquetas
                                  lote: opciones[:lote],
                                  lote_margen_pt: Dimensiones.pt(opciones[:lote_margen_mm]),
                                  lote_hueco_pt: Dimensiones.pt(opciones[:lote_hueco_mm]),
+                                 lote_pagina_pt: opciones[:lote_pagina]&.map { |mm| Dimensiones.pt(mm) },
                                  en_progreso: progreso&.callback)
       progreso&.terminar
       transcurrido = Process.clock_gettime(Process::CLOCK_MONOTONIC) - inicio
@@ -146,6 +147,13 @@ module GeneradorEtiquetas
                 'Separación entre etiquetas del lote en mm (defecto 8)') do |v|
           opciones[:lote_hueco_mm] = v
         end
+
+        opts.on('--lote-pagina ANCHOxALTO',
+                'Tamaño de la hoja del lote en mm, p. ej. 210x297 (defecto A4)') do |v|
+          ancho, alto = v.split('x').map(&:to_f)
+          raise ArgumentError, '--lote-pagina debe ser ANCHOxALTO en mm, p. ej. 210x297' unless ancho&.positive? && alto&.positive?
+          opciones[:lote_pagina] = [ancho, alto]
+        end
         opts.on('--ancho-mm N', Float, "Ancho de etiqueta en mm (por defecto #{Dimensiones::ANCHO_POR_DEFECTO_MM})") do |v|
           opciones[:ancho_mm] = v
         end
@@ -205,6 +213,7 @@ module GeneradorEtiquetas
               --lote            Además genera lote_A4.pdf (cuadrícula de etiquetas)
               --lote-margen-mm MM   Margen de la hoja del lote en mm (defecto 20)
               --lote-hueco-mm MM    Separación entre etiquetas del lote en mm (defecto 8)
+              --lote-pagina ANCHOxALTO   Tamaño de hoja del lote en mm, p. ej. 210x297 (defecto A4)
           -h, --help            Esta ayuda
 
         Ejemplos:
@@ -214,6 +223,7 @@ module GeneradorEtiquetas
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --hoja Codigos
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote --lote-margen-mm 10 --lote-hueco-mm 5
+          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote --lote-pagina 150x100
       TXT
     end
   end

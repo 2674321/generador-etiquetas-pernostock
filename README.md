@@ -28,16 +28,19 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
   - Acción "Abrir el PDF generado" para cada fila.
 - **CLI portátil (`bin/etiquetas_cli`)** con opciones `--salida`, `--buscar`,
   `--cantidad`, `--hoja N|nombre`, `--listar-hojas`, `--todas`, `--ancho-mm`,
-  `--alto-mm`, `--lote`, `--lote-margen-mm`, `--lote-hueco-mm`, `--quiet`,
-  barra de **progreso** en terminal y resumen con tiempo.
+  `--alto-mm`, `--lote`, `--lote-margen-mm`, `--lote-hueco-mm`,
+  `--lote-pagina ANCHOxALTO`, `--quiet`, barra de **progreso** en terminal y
+  resumen con tiempo.
 - **PDFs con metadatos** (código/descripción/versión) y **vista previa** en la GUI
   con la misma geometría que se imprime.
-- **Lote A4**: `--lote` (CLI) o casilla **"Lote A4"** (GUI) genera
-  `lote_A4.pdf`, una hoja imprimible con todas las etiquetas en cuadrícula
-  (varias páginas si no caben). El **margen** (`--lote-margen-mm`) y la
-  **separación** entre etiquetas (`--lote-hueco-mm`) son configurables.
-- **Vista previa de la hoja** del lote en la GUI: al seleccionar la fila "LOTE A4"
-  se dibuja la cuadrícula de la primera página con la misma geometría que el PDF.
+- **Lote**: `--lote` (CLI) o casilla **"Lote A4"** (GUI) genera `lote_A4.pdf`,
+  hoja imprimible con todas las etiquetas en cuadrícula (varias páginas si no
+  caben). Configurables: **hoja** (`--lote-pagina ANCHOxALTO`, deg. A4),
+  **margen** (`--lote-margen-mm`, def. 20) y **separación** entre etiquetas
+  (`--lote-hueco-mm`, def. 8).
+- **Vista previa paginada del lote** en la GUI: al seleccionar la fila "LOTE A4"
+  se dibuja la cuadrícula de una página exactamente como el PDF, con un selector
+  **"Pág. del lote"** cuando hay más de una hoja.
 - **Deduplicación** por código (se omite en el PDF; se informa en el reporte),
   **validación Code128** (solo ASCII imprimible), **omisión automática de la cabecera**
   y de **filas vacías** de la hoja, y **selección de hoja** (GUI/CLI).
@@ -114,7 +117,8 @@ ruby bin/main.rb   # GUI GTK (requiere display X11)
 Flujo:
 1. Seleccionar la hoja de cálculo o CSV (`.xlsx` / `.xls` / `.xlsm` / `.ods` / `.csv`).
 2. Con la hoja de **Hoja** elegir si se desea (se actualiza al cambiar el archivo).
-3. Ajustar opciones (filtro, cantidad, duplicados, tamaño en mm, **lote A4**) y pulsar **Generar etiquetas**.
+3. Ajustar opciones (filtro, cantidad, duplicados, tamaño en mm, **lote con su
+   margen/separación**) y pulsar **Generar etiquetas**.
 4. En el **panel de resultados**, cada fila muestra su estado; al seleccionarla se dibuja
    la **vista previa** (misma geometría que el PDF) y se puede abrir el PDF generado.
 

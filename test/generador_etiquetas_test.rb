@@ -4,6 +4,8 @@ require 'minitest/autorun'
 
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 require 'generador_etiquetas'
+require 'cairo'
+require 'gui/panel_hoja'
 require 'tmpdir'
 
 module GeneradorEtiquetas
@@ -258,6 +260,79 @@ module GeneradorEtiquetas
                         en_progreso: ->(hechas, total) { avances << [hechas, total] })
       assert_equal [1, 2, 3, 4, 5], avances.map(&:first)
       assert_equal [5, 5], avances.last
+    end
+
+    def test_lote_con_pagina_personalizada
+      reporte = @maquina.procesar(File.join(ROOT, 'data/demo/codigos_demo.xlsx'),
+                                  lote: true, lote_pagina_pt: [Dimensiones.pt(150), Dimensiones.pt(100)])
+      assert_equal 1, reporte.lotes
+      lote = reporte.resultados.find(&:lote?)
+      assert_includes lote.descripcion, '150.0×100.0 mm'
+      binario = File.binread(lote.archivo)
+      m = %r{/MediaBox \[\d+ \d+ ([0-9.]+) ([0-9.]+)\]}.match(binario)
+      assert_in_delta Dimensiones.pt(150), m[1].to_f, 0.1
+      assert_in_delta Dimensiones.pt(100), m[2].to_f, 0.1
+    end
+  end
+
+  class TestLotePaginas < Minitest::Test
+    GA = GeneradorEtiquetas
+    BASE = {
+      ancho_pagina_pt: LoteEtiqueta::A4_ANCHO_PT, alto_pagina_pt: LoteEtiqueta::A4_ALTO_PT,
+      ancho_etiqueta_pt: Dimensiones.pt(100), alto_etiqueta_pt: Dimensiones.pt(50)
+    }.freeze
+
+    def test_paginas_segun_el_numero_total
+      assert_equal 1, LoteEtiqueta.paginas(5, **BASE)
+      assert_equal 2, LoteEtiqueta.paginas(8, **BASE)
+      assert_equal 1, LoteEtiqueta.paginas(0, **BASE), 'sin etiquetas hay 1 hoja limpia'
+    end
+
+    def test_por_hoja_coincide_con_grarilla
+      assert_equal LoteEtiqueta.grarilla(**BASE)[2], LoteEtiqueta.por_hoja(**BASE)
+    end
+  end
+
+  class TestPanelHoja < Minitest::Test
+    GA = GeneradorEtiquetas
+
+    def panel(etiquetas, pagina: 0)
+      PanelHoja.new(etiquetas,
+                    ancho_etiqueta_pt: GA::Dimensiones.pt(100),
+                    alto_etiqueta_pt: GA::Dimensiones.pt(50),
+                    pagina: pagina)
+    end
+
+    def etiquetas(n)
+      (1..n).map { |i| GA::Etiqueta.new(codigo: format('PET-10%02d', i), descripcion: "D#{i}") }
+    end
+
+    def oscuros(panel)
+      imagen = Cairo::ImageSurface.new(Cairo::FORMAT_RGB24, 200, 280)
+      cr = Cairo::Context.new(imagen)
+      panel.dibujar(cr, 200, 280, fondo: :gris)
+      imagen.data.bytes.count { |b| b.to_i < 120 }
+    end
+
+    def test_multipagina
+      hoja = panel(etiquetas(8))
+      assert_equal 2, hoja.paginas
+      assert_equal 5, hoja.etiquetas_pagina.size, 'la página 1 muestra las 5 primeras'
+      hoja2 = panel(etiquetas(8), pagina: 1)
+      assert_equal 3, hoja2.etiquetas_pagina.size, 'la página 2 muestra las 3 restantes'
+    end
+
+    def test_pagina_vacia_no_dibuja_contenido
+      hoja_fuera = panel(etiquetas(5), pagina: 3)
+      assert_empty hoja_fuera.etiquetas_pagina
+      assert_equal 0, oscuros(hoja_fuera), 'una página sin etiquetas queda en blanco'
+    end
+
+    def test_paginas_dibujan_barras
+      [0, 1].each do |pagina|
+        hoja = panel(etiquetas(8), pagina: pagina)
+        assert_operator oscuros(hoja), :>, 0, "la página #{pagina + 1} dibuja contenido"
+      end
     end
   end
 end

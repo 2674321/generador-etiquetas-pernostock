@@ -31,6 +31,13 @@ def comprobar(cond, msg)
   end
 end
 
+def oscuros_offscreen(panel, ancho = 295, alto = 420)
+  imagen = Cairo::ImageSurface.new(Cairo::FORMAT_RGB24, ancho, alto)
+  cr = Cairo::Context.new(imagen)
+  panel.dibujar(cr, ancho, alto, fondo: :gris)
+  imagen.data.bytes.count { |b| b.to_i < 120 }
+end
+
 puts '== Sonda GUI (headful; la ventana no se muestra) =='
 Gtk.init
 
@@ -114,6 +121,33 @@ hoja.dibujar(cr_hoja, 595, 842)
 oscuros_hoja = imagen_hoja.data.bytes.count { |b| b.to_i < 120 }
 comprobar(oscuros_hoja.positive?,
           "la previa de hoja dibuja las barras de la cuadrícula (#{oscuros_hoja} píxeles)")
+
+# 5c. Los spinners de margen/separaación del lote están presentes y cableados.
+margen_spin = app.instance_variable_get(:@campo_margen_lote)
+hueco_spin = app.instance_variable_get(:@campo_hueco_lote)
+comprobar(margen_spin && hueco_spin, 'la GUI expone margen/separaación del lote')
+margen_spin.value = 30.0
+hoja_30 = app.send(:construir_panel_hoja)
+comprobar((hoja_30.margen_pt - GeneradorEtiquetas::Dimensiones.pt(30)).abs < 0.5,
+          'el margen del lote configurado en la GUI llega a la previa')
+margen_spin.value = GeneradorEtiquetas::LoteEtiqueta::MARGEN_PT
+
+# 5d. La previa de hoja pagina: 8 etiquetas de 100×50 en A4 dan 2 páginas.
+etiquetas_8 = (1..8).map { |i| GeneradorEtiquetas::Etiqueta.new(codigo: format('PET-20%02d', i)) }
+hoja_p1 = GeneradorEtiquetas::PanelHoja.new(
+  etiquetas_8,
+  ancho_etiqueta_pt: GeneradorEtiquetas::Dimensiones.pt(100),
+  alto_etiqueta_pt: GeneradorEtiquetas::Dimensiones.pt(50)
+)
+hoja_p2 = GeneradorEtiquetas::PanelHoja.new(
+  etiquetas_8,
+  ancho_etiqueta_pt: GeneradorEtiquetas::Dimensiones.pt(100),
+  alto_etiqueta_pt: GeneradorEtiquetas::Dimensiones.pt(50),
+  pagina: 1
+)
+comprobar(hoja_p1.paginas == 2, 'el lote de 8 etiquetas usa 2 páginas')
+oscuros_p2 = oscuros_offscreen(hoja_p2)
+comprobar(oscuros_p2.positive?, "la página 2 del lote dibuja sus etiquetas (#{oscuros_p2} px)")
 
 puts
 puts FALLOS.empty? ? 'PRUEBA DE GUI: CORRECTA' : "PRUEBA DE GUI: #{FALLOS.size} FALLOS"

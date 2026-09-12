@@ -3,16 +3,20 @@
 require 'cairo'
 
 require_relative '../generador_etiquetas'
+require_relative 'panel_etiqueta'
 
 module GeneradorEtiquetas
-  # Vista previa de la hoja A4 del lote: dibuja la PRIMERA página de la misma
-  # cuadrícula que genera `LoteEtiqueta.generar` (misma grarilla, mismas celdas),
-  # de modo que lo que se ve coincide con lo que se imprime.
+  # Vista previa de una página del lote: dibuja la misma cuadrícula que genera
+  # `LoteEtiqueta.generar` (misma grarilla, mismas celdas), de modo que lo que se
+  # ve coincide con lo que se imprime. Con `pagina:` se elige la página (0-based).
   class PanelHoja
+    attr_reader :paginas, :margen_pt, :hueco_pt
+
     def initialize(etiquetas, ancho_etiqueta_pt:, alto_etiqueta_pt:,
                    ancho_pagina_pt: LoteEtiqueta::A4_ANCHO_PT,
                    alto_pagina_pt: LoteEtiqueta::A4_ALTO_PT,
-                   margen_pt: LoteEtiqueta::MARGEN_PT, hueco_pt: LoteEtiqueta::HUECO_PT)
+                   margen_pt: LoteEtiqueta::MARGEN_PT, hueco_pt: LoteEtiqueta::HUECO_PT,
+                   pagina: 0)
       @etiquetas = etiquetas
       @ancho_etiqueta_pt = ancho_etiqueta_pt
       @alto_etiqueta_pt = alto_etiqueta_pt
@@ -25,6 +29,18 @@ module GeneradorEtiquetas
         ancho_etiqueta_pt: ancho_etiqueta_pt, alto_etiqueta_pt: alto_etiqueta_pt,
         margen_pt: margen_pt, hueco_pt: hueco_pt
       )
+      @pagina = pagina
+      @paginas = LoteEtiqueta.paginas(etiquetas.size, ancho_pagina_pt: ancho_pagina_pt,
+                                       alto_pagina_pt: alto_pagina_pt,
+                                       ancho_etiqueta_pt: ancho_etiqueta_pt,
+                                       alto_etiqueta_pt: alto_etiqueta_pt,
+                                       margen_pt: margen_pt, hueco_pt: hueco_pt)
+    end
+
+    # Etiquetas de la página que se está viendo.
+    def etiquetas_pagina
+      desde = @pagina * @por_hoja
+      @etiquetas[desde, @por_hoja] || []
     end
 
     # Dibuja, centrada y conservando la proporción de la hoja, la primera página.
@@ -48,7 +64,8 @@ module GeneradorEtiquetas
       cr.rectangle(0, 0, @ancho_pagina_pt, @alto_pagina_pt)
       cr.fill
       cr.set_source_rgb(0.86, 0.86, 0.86)
-      @etiquetas.first(@por_hoja).each_with_index do |_e, i|
+      pagina_etiquetas = etiquetas_pagina
+      pagina_etiquetas.each_with_index do |_e, i|
         x, y = LoteEtiqueta.celda(i, @columnas,
                                   ancho_etiqueta_pt: @ancho_etiqueta_pt,
                                   alto_etiqueta_pt: @alto_etiqueta_pt,
@@ -57,7 +74,7 @@ module GeneradorEtiquetas
         cr.stroke
       end
 
-      @etiquetas.first(@por_hoja).each_with_index do |etiqueta, i|
+      pagina_etiquetas.each_with_index do |etiqueta, i|
         layout = LayoutEtiqueta.calcular(etiqueta,
                                          ancho_pt: @ancho_etiqueta_pt,
                                          alto_pt: @alto_etiqueta_pt)

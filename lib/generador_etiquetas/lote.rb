@@ -12,7 +12,8 @@ module GeneradorEtiquetas
     MARGEN_PT = 20.0
     HUECO_PT  = 8.0
 
-    # Nombre del PDF de lote dentro del directorio de salida.
+    # Nombre del PDF de lote dentro del directorio de salida (no cambia aunque
+    # se genere con una hoja de tamaño distinto a A4).
     NOMBRE_ARCHIVO = 'lote_A4.pdf'
 
     module_function
@@ -35,6 +36,21 @@ module GeneradorEtiquetas
       fila = (indice / columnas).floor
       [margen_pt + (col * (ancho_etiqueta_pt + hueco_pt)),
        margen_pt + (fila * (alto_etiqueta_pt + hueco_pt))]
+    end
+
+    # Etiquetas que caben en una hoja (misma firma que `grarilla`).
+    def por_hoja(ancho_pagina_pt:, alto_pagina_pt:, ancho_etiqueta_pt:,
+                 alto_etiqueta_pt:, margen_pt: MARGEN_PT, hueco_pt: HUECO_PT)
+      grarilla(ancho_pagina_pt: ancho_pagina_pt, alto_pagina_pt: alto_pagina_pt,
+               ancho_etiqueta_pt: ancho_etiqueta_pt, alto_etiqueta_pt: alto_etiqueta_pt,
+               margen_pt: margen_pt, hueco_pt: hueco_pt)[2]
+    end
+
+    # Nº de páginas necesarias para `total` etiquetas (al menos 1; una hoja
+    # limpia si no hay etiquetas, útil para calibración/corte).
+    def paginas(total, **kwargs)
+      por_total = por_hoja(**kwargs)
+      total.zero? || total.nil? ? 1 : ((total - 1) / por_total) + 1
     end
 
     # Genera el PDF del lote. Devuelve [columnas, filas, hojas]. Con etiquetas
