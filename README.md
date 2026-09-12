@@ -1,49 +1,76 @@
 # Generador de Etiquetas — PernoStock Ltda.
 
 Aplicación de escritorio en **Ruby + GTK3** para generar etiquetas de códigos de
-barras (Code128) en PDF, leyendo los códigos desde una hoja de cálculo (Excel).
+barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cálculo
+(Excel/ODS).
 
 > **⚠️ Software recuperado de material histórico de trabajo** (enero–febrero 2024).
 > Fue desarrollado como parte de un proyecto de formación (Técnico en Programación)
-> para **PernoStock Ltda.** Se publica como referencia histórica y para preservar el
-> código; no representa el estado actual del desarrollo.
+> para **PernoStock Ltda.** El repositorio se publica como referencia y para preservar
+> el código; esta iteración además **reconstruye el sistema** con un núcleo portátil,
+> etiquetas a tamaño real corregidas y un panel de resultados en la GUI.
 
-## Funcionalidades
+## Características
 
-- Lee una hoja de cálculo (`.xlsx` / `.xls`) y genera códigos de barras Code128.
-- **`main.rb` (principal):** genera N etiquetas a partir de la primera columna de la hoja
-  de cálculo y las guarda en PDF en la carpeta `pdfs/`.
-- **`generador_etiquetas_gtk.rbw`:** interfaz GTK con buscador por código, selector de
-  archivo de entrada y carpeta de salida.
-- Variantes de desarrollo (CLI, versión simple, prototipo Shoes).
+- **Núcleo independiente de la GUI** (`lib/generador_etiquetas/`): lee la hoja de
+  cálculo, valida códigos, calcula el layout y genera PDFs. Portable y sin dependencias
+  de escritorio.
+- **Etiquetas a tamaño real (100×50 mm)**: la geometría (descripción, barras y código
+  legible) se calcula una única vez en `LayoutEtiqueta` y alimenta **tanto el PDF como
+  la vista previa**, de modo que lo que se ve es exactamente lo que se imprime.
+  *(Se corrige la versión histórica, que generaba etiquetas de solo 75×28 pt.)*
+- **GUI (`bin/main.rb`)** con:
+  - Selector de hoja de cálculo, filtro por texto, cantidad máxima, inclusión de
+    duplicados y tamaño configurable (mm).
+  - **Panel de resultados**: tabla con estado (generada / duplicada / inválida / error)
+    y **vista previa de la etiqueta seleccionada** (dibujada con Cairo, misma geometría
+    que el PDF).
+  - Acción "Abrir el PDF generado" para cada fila.
+- **CLI portátil (`bin/etiquetas_cli`)** con opciones `--salida`, `--buscar`,
+  `--cantidad`, `--todas`, `--ancho-mm`, `--alto-mm`, `--quiet`.
+- **Deduplicación** por código (se omite en el PDF; se informa en el reporte),
+  **validación Code128** (solo ASCII imprimible) y **omisión automática de la cabecera**
+  de la hoja.
+- Las variantes históricas se conservan en `lib/legacy/`.
 
 ## Stack
 
 | Componente | Tecnología |
 |---|---|
 | Lenguaje | Ruby 3.2.x |
-| GUI | GTK3 |
-| Código de barras | Barby (Code128) |
+| GUI | GTK3 (+ Cairo para la vista previa) |
+| Código de barras | Barby (Code128, dibujo de módulos manual) |
 | PDF | Prawn |
-| Lectura de Excel | roo-xls / roo |
+| Lectura de hoja | roo / roo-xls (`.xlsx`, `.xls`, `.xlsm`, `.ods`) |
 
 ## Estructura
 
 ```
-├── bin/main.rb                 ← punto de entrada (wrapper)
+├── bin/
+│   ├── main.rb                    ← GUI (requiere display X11)
+│   └── etiquetas_cli              ← CLI portátil
 ├── lib/
-│   ├── main.rb                 ← generador principal (modular, N etiquetas)
-│   ├── generador_etiquetas_gtk.rbw   ← variante GTK con buscador por código
-│   ├── generador_etiquetas_cli.rb    ← variante por consola (CLI)
-│   ├── generador_etiquetas_simple.rb ← variante simple
-│   └── visual_shoes.rb         ← prototipo (Shoes)
-├── docs/
-│   ├── gems.txt                ← dependencias y comandos de instalación
-│   ├── Funciones_2_programas.txt    ← planificación/características
-│   ├── codigo_etiquetas_VB.txt → referencia de la versión VB original
-│   └── codigo_barras_unico_ejemplo.pdf ← ejemplo de salida
-├── Gemfile
-└── CHANGELOG.md
+│   ├── generador_etiquetas.rb     ← require central del núcleo
+│   ├── generador_etiquetas/       ← NÚCLEO (sin GUI)
+│   │   ├── dimensiones.rb         ← geometría y conversión mm→pt
+│   │   ├── etiqueta.rb            ← modelo y validación del código
+│   │   ├── libro.rb               ← lectura de la hoja (Roo)
+│   │   ├── layout.rb              ← composición de la etiqueta (top-down)
+│   │   ├── dibujo.rb              ← flujo de dibujo compartido
+│   │   ├── pdf.rb                 ← destino PDF (Prawn)
+│   │   ├── reporte.rb             ← resultados por fila y totales
+│   │   ├── maquina.rb             ← orquestador (procesar → PDFs+reporte)
+│   │   └── cli.rb                 ← interfaz de consola
+│   ├── gui/
+│   │   ├── aplicacion.rb          ← ventana con panel de resultados
+│   │   └── panel_etiqueta.rb      ← destino de vista previa (Cairo)
+│   └── legacy/                    ← variantes históricas conservadas
+├── data/demo/                     ← fixtures ficticios (no versionados)
+└── docs/
+    ├── gems.txt                   ← dependencias y requires
+    ├── DEV-SETUP.md               ← reproducción del entorno
+    ├── Funciones_2_programas.txt  ← planificación/características
+    └── codigo_etiquetas_VB.txt    ← referencia de la versión VB original
 ```
 
 ## Instalación
@@ -56,31 +83,45 @@ bundle install      # instala las gems declaradas en el Gemfile
 ## Ejecución (CLI)
 
 ```bash
-mise exec -- bundle exec ruby lib/generador_etiquetas_cli.rb data/demo/codigos_demo.xlsx [directorio_salida]
+ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
+ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --salida salida --buscar PET-10
+ruby bin/etiquetas_cli --help
 ```
 
-La CLI acepta el archivo de entrada como argumento (ruta relativa o absoluta) y
-escribe el PDF en el directorio de salida (por defecto `salida/` dentro del
-proyecto). Sin argumento muestra la ayuda de uso.
+Escribe los PDF en `./salida` por defecto (portable). Muestra un reporte por fila y
+un resumen al final.
 
 ## Ejecución (GUI)
 
 ```bash
-mise exec -- bundle exec ruby bin/main.rb   # GUI GTK (requiere display X11)
+ruby bin/main.rb   # GUI GTK (requiere display X11)
 ```
+
+Flujo:
+1. Seleccionar la hoja de cálculo (`.xlsx` / `.xls` / `.xlsm` / `.ods`).
+2. Ajustar opciones (filtro, cantidad, duplicados, tamaño en mm) y pulsar **Generar etiquetas**.
+3. En el **panel de resultados**, cada fila muestra su estado; al seleccionarla se dibuja
+   la **vista previa** (misma geometría que el PDF) y se puede abrir el PDF generado.
 
 > **Entorno DEV:** la reproducción en este PC (Linux/X11, Ruby 3.2 vía mise) está
 > verificada — ver [`docs/DEV-SETUP.md`](docs/DEV-SETUP.md). El core
-> (Excel → Code128 → PDF) se probó con datos demo ficticios (`_scripts/dev/prueba_core.rb`).
+> (hoja → Code128 → PDF) se prueba sin GUI con `_scripts/dev/prueba_core.rb`.
 
-> Las rutas de entrada/salida son **portables** (no dependen de rutas Windows fijas).
+## Prueba del core (headless)
+
+```bash
+ruby _scripts/dev/prueba_core.rb
+```
+
+Genera los 5 PDFs demo, comprueba que son 100×50 mm, verifica el contenido textual de
+cada PDF y ejercita los caminos negativos (encabezado, duplicados y código no imprimible).
 
 ## Datos de ejemplo
 
 Este repositorio **no incluye** los archivos Excel originales (lista maestra de precios y
 libro de recepción de baterías), que contienen datos comerciales sensibles de PernoStock
-Ltda. y se conservan únicamente en el material histórico local. Para probar, usa una hoja
-de cálculo propia con los códigos en la primera columna.
+Ltda. y se conservan únicamente en el material histórico local. Para probar se usan
+fixtures ficticios (`data/demo/`), regenerables sin datos reales.
 
 ## Autor
 

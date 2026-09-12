@@ -125,8 +125,7 @@ class VentanaGTK
 
         # Creamos el PDF
         Prawn::Document.generate(File.join(OUTPUT_DIR, "etiqueta_#{i + 1}.pdf"), page_layout: :portrait, page_size: [75, 28]) do
-          move_down 10
-          barcode.annotate_pdf(self, x: 5, y: cursor - 5, height: 20)
+          barcode.annotate_pdf(self, x: 5, y: cursor - 5, height: 20, xdim: 2)
         end
       end
 

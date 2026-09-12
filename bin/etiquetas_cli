@@ -2,6 +2,6 @@
 # frozen_string_literal: true
 
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
-require 'gui/aplicacion'
+require 'generador_etiquetas/cli'
 
-GeneradorEtiquetas::Aplicacion.correr
+exit GeneradorEtiquetas::CLI.ejecutar(ARGV)

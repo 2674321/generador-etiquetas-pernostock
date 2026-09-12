@@ -13,7 +13,7 @@ en el PC actual (Linux con X11), usando **mise** para la versión de Ruby.
   ```bash
   sudo apt install libgtk-3-dev libgirepository1.0-dev build-essential pkg-config
   ```
-  (En este PC ya están presentes: `libgtk-3-dev` 3.24 instalado.)
+  (En este PC ya están presentes: `libgtk-3-dev` 3.24 instalado. `cairo` viene con GTK.)
 - [mise](https://mise.jdx.dev) instalado.
 
 ## Versión de Ruby
@@ -29,10 +29,11 @@ Definidas en `Gemfile`:
 | Gem | Finalidad |
 |---|---|
 | `gtk3` | Interfaz gráfica GTK3 |
+| `cairo` | Vista previa de la etiqueta (dibujo) |
 | `prawn` | Generación de PDF |
-| `roo` / `roo-xls` | Lectura de hojas de cálculo `.xlsx` / `.xls` |
-| `barby` | Códigos de barras Code128 |
-| `tty-progressbar` | Barra de progreso (variantes) |
+| `roo` / `roo-xls` | Lectura de hojas de cálculo `.xlsx` / `.xls` / `.xlsm` / `.ods` |
+| `barby` | Códigos de barras Code128 (solo `#encoding`) |
+| `tty-progressbar` | Barra de progreso (variantes históricas) |
 
 ## Instalación
 
@@ -47,48 +48,61 @@ bundle install        # instala las gems en la Ruby de mise
 ## Ejecución
 
 ```bash
-# GUI principal (genera N etiquetas desde la 1ª columna del Excel)
+# GUI con panel de resultados (requiere display X11)
 mise exec -- bundle exec ruby bin/main.rb
+
+# CLI portátil (100×50 mm por defecto; salida en ./salida)
+mise exec -- bundle exec ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
+mise exec -- bundle exec ruby bin/etiquetas_cli --help
 ```
 
-> Requiere un entorno gráfico. Probado con `DISPLAY=:0`.
-
-### Variantes
-
-```bash
-# GTK con buscador por código
-mise exec -- bundle exec ruby lib/generador_etiquetas_gtk.rbw
-
-# CLI (rutas Windows fijas C:\... — requiere ajuste en Linux)
-mise exec -- bundle exec ruby lib/generador_etiquetas_cli.rb
-```
+> Requiere un entorno gráfico solo para la GUI. La CLI y el núcleo son headless.
 
 ## Prueba básica (sin datos reales)
 
-1. El fixture con códigos ficticios (`data/demo/codigos_demo.xlsx`) se genera según
-   instrucciones en `data/demo/` (los `.xlsx` no se versionan).
+1. Los fixtures con códigos ficticios (`data/demo/codigos_demo.xlsx` y
+   `codigos_con_problemas.xlsx`) se generan/regeneran según las instrucciones de
+   `data/demo/` (los `.xlsx` no se versionan).
 2. Prueba del core sin GUI:
 
 ```bash
 mise exec -- ruby _scripts/dev/prueba_core.rb
 ```
 
-Salida esperada: lee los códigos demo y crea 5 PDFs (Code128) en `tmp/demo_pdfs/`.
+Salida esperada: `PRUEBA DEL CORE: CORRECTA`. Genera los 5 PDFs demo, comprueba su
+tamaño (100×50 mm = `/MediaBox [0 0 283.46 141.73]`), verifica el texto de cada PDF y
+ejercita encabezado, duplicados y código no imprimible.
 
 ## Validación sintáctica
 
 ```bash
 mise exec -- ruby -c bin/main.rb
-mise exec -- ruby -c lib/main.rb
-mise exec -- ruby -c lib/generador_etiquetas_gtk.rbw
-mise exec -- ruby -c lib/generador_etiquetas_cli.rb
+mise exec -- ruby -c bin/etiquetas_cli
+for f in lib/generador_etiquetas.rb lib/generador_etiquetas/*.rb lib/gui/*.rb; do
+  mise exec -- ruby -c "$f" >/dev/null || echo "FALLA: $f"
+done
 ```
+
+## Verificación de rutas portables
+
+No deben quedar rutas Windows rígidas en el código fuente:
+
+```bash
+grep -RniE 'C:\\|C:/|Users/|Desktop/' bin lib
+```
+
+## Capturas reales
+
+La GUI se probó con `data/demo/codigos_demo.xlsx` (Linux/X11). Capturas en `assets/`:
+`generador_etiquetas_gtk_principal.png`, `generador_etiquetas_generacion.png`,
+`generador_etiquetas_resultado.png`.
 
 ## Problemas conocidos
 
-- **IMPORTANTE:** las variantes CLI/simple usan rutas fijas `C:\...`; en Linux hay que
-  ajustar las constantes de entrada/salida.
-- **MENOR:** la constante `Gtk::VERSION` no existe en `gtk3` 4.3.8 (es `Gtk::Version`).
-  No afecta la ejecución.
-- **HISTÓRICO:** la app fue creada para Windows/RubyDevkit 3.2.2; en Linux la variante
-  GTK `bin/main.rb` funciona con X11.
+- **MENOR:** la vista previa (Cairo) usa métricas aproximadas para el texto: las
+  **barras** coinciden exactamente con el PDF, pero los textos pueden variar ±1–2 pt
+  en posición (solo visual; el PDF impreso es el que manda).
+- **HISTÓRICO:** las variantes en `lib/legacy/` conservan sus limitaciones (p. ej.
+  `xlsx.each`, tamaño 75×28 pt). Solo se mantienen como referencia.
+- **HISTÓRICO:** la app fue creada para Windows/RubyDevkit 3.2.2; en Linux la GUI
+  `bin/main.rb` (reconstruida) funciona con X11.

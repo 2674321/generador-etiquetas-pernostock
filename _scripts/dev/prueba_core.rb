@@ -2,42 +2,88 @@
 # frozen_string_literal: true
 
 # Prueba mínima funcional del CORE del Generador de Etiquetas (sin GUI).
-# Lee un `.xlsx` demo con códigos ficticios y genera PDFs Code128 con Prawn.
+# - Genera PDFs Code128 (100×50 mm) desde los fixtures demo.
+# - Verifica que el PDF es 283.46×141.73 pt y contiene barras y texto.
+# - Ejerce caminos negativos: encabezado, duplicados y código no imprimible.
 #
 # Uso (dentro de generador-etiquetas-pernostock):
-#   mise exec -- ruby _scripts/dev/prueba_core.rb
+#   ruby _scripts/dev/prueba_core.rb
 #
 # No usa datos reales de PernoStock. Los códigos demo son ficticios.
 
-require "roo"
-require "barby"
-require "barby/barcode/code_128"
-require "barby/outputter/prawn_outputter"
-require "prawn"
 require "fileutils"
+require_relative "../../lib/generador_etiquetas"
 
-DEMO_XLSX = "data/demo/codigos_demo.xlsx"
-OUTPUT_DIR = "tmp/demo_pdfs"
+DEMO = "data/demo/codigos_demo.xlsx"
+PROBLEMAS = "data/demo/codigos_con_problemas.xlsx"
+SALIDA = "tmp/demo_pdfs/core_prueba"
+ANCHO_PT = GeneradorEtiquetas::Dimensiones.pt(100)
+ALTO_PT = GeneradorEtiquetas::Dimensiones.pt(50)
+MEDIA_BOX = %r{/MediaBox \[\d+ \d+ ([0-9.]+) ([0-9.]+)\]}m
 
-abort "No se encuentra #{DEMO_XLSX}. Genera primero el fixture demo." unless File.exist?(DEMO_XLSX)
-
-FileUtils.mkdir_p(OUTPUT_DIR)
-
-wb = Roo::Spreadsheet.open(DEMO_XLSX)
-sheet = wb.sheet(0)
-cantidad = 5
-codes = (1..cantidad).map { |i| sheet.cell(i, 1).to_s }
-
-puts "Códigos leídos desde el fixture: #{codes.join(', ')}"
-
-codes.each_with_index do |code, idx|
-  barcode = Barby::Code128.new(code)
-  Prawn::Document.generate("#{OUTPUT_DIR}/etiqueta_#{idx + 1}.pdf", page_layout: :portrait, page_size: [75, 28]) do
-    move_down 10
-    barcode.annotate_pdf(self, x: 5, y: cursor - 5, height: 20)
+FALLOS = []
+def comprobar(condicion, mensaje)
+  if condicion
+    puts "  OK  #{mensaje}"
+  else
+    puts "  FALLO #{mensaje}"
+    FALLOS << mensaje
   end
 end
 
-pdfs = Dir["#{OUTPUT_DIR}/*.pdf"].sort
-puts "PDFs generados: #{pdfs.size}"
-puts pdfs
+def tamano_media_box(pdf)
+  m = MEDIA_BOX.match(File.binread(pdf))
+  m && [m[1].to_f, m[2].to_f]
+end
+
+abort "No se encuentra #{DEMO}." unless File.exist?(DEMO)
+
+FileUtils.rm_rf(SALIDA)
+FileUtils.mkdir_p(SALIDA)
+
+puts "== Generación desde fixture demo =="
+maquina = GeneradorEtiquetas::Maquina.new(salida: SALIDA)
+reporte = maquina.procesar(DEMO)
+comprobar(reporte.generadas == 5, "se generan 5 etiquetas (== #{reporte.generadas})")
+comprobar(reporte.errores.zero?, "0 errores")
+
+puts "== Estructura de los PDF =="
+pdfs = Dir["#{SALIDA}/*.pdf"].sort
+pdfs.each do |pdf|
+  tamano = tamano_media_box(pdf)
+  ajustado = tamano &&
+             (tamano[0] - ANCHO_PT).abs < 0.05 &&
+             (tamano[1] - ALTO_PT).abs < 0.05
+  comprobar(ajustado,
+            "#{File.basename(pdf)} es 100×50 mm (#{tamano && tamano.map { |v| v.round(2) }.join(' × ')})")
+end
+comprobar(pdfs.size == 5, "5 archivos en #{SALIDA}")
+
+puts "== Si hay pdftotext, se comprueba contenido textual =="
+if system("which", "pdftotext", out: File::NULL, err: File::NULL)
+  texto = `pdftotext -layout #{File.join(SALIDA, 'PET-1001.pdf')} -`
+  comprobar(texto.include?("BATERIA DEMO 001"), "el texto incluye la descripción")
+  comprobar(texto.include?("PET-1001"), "el texto incluye el código legible")
+else
+  puts "  (pdftotext no disponible; se omite esta comprobación)"
+end
+
+if File.exist?(PROBLEMAS)
+  puts "== Caminos negativos (fixture con problemas) =="
+  r2 = maquina.procesar(PROBLEMAS)
+  comprobar(r2.generadas == 2, "2 generadas (== #{r2.generadas})")
+  comprobar(r2.duplicadas == 2, "2 duplicadas omitidas (== #{r2.duplicadas})")
+  comprobar(r2.invalidas == 1, "1 inválida omitida (== #{r2.invalidas})")
+  comprobar(r2.errores.zero?, "0 errores")
+else
+  puts "  (no existe #{PROBLEMAS}; se omite)"
+end
+
+puts
+if FALLOS.empty?
+  puts "PRUEBA DEL CORE: CORRECTA"
+  exit 0
+else
+  puts "PRUEBA DEL CORE: #{FALLOS.size} FALLOS"
+  exit 1
+end

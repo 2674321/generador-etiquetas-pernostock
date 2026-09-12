@@ -1,24 +1,26 @@
-require 'gtk3' (Toda la interfaz)
 require 'prawn' (PDF)
+require 'barby' (generador codigo de barras)
+require 'barby/barcode/code_128' (solo se usa su #encoding: los módulos se dibujan
+                                  manualmente, compartidos entre PDF y vista previa)
+require 'roo' (lector de xlsx/xlsm/ods)
 require 'roo-xls' (lector de xls)
-require 'barby'(generador codiog de barras)
-require 'barby/barcode/code_128' (generador codiog de barras)
-require 'barby/outputter/prawn_outputter' (codigo de barras en pdf)
-require 'tty-progressbar' (barra de progreso / ya no se usa)
-require 'date' (fecha tiempo real)
-require 'sqlite3'  (Base de Datos)
+require 'fileutils' (creacion de directorios de salida)
+require 'gtk3' (interfaz grafica)
+require 'cairo' (vista previa de la etiqueta)
+require 'tty-progressbar' (variantes historicas / ya no se usa en el nucleo)
+require 'date' (fecha tiempo real, historico)
+require 'sqlite3' (Base de Datos, historico)
 
 (Devkit y gems) Instalar como AD
 CMD como AD
 
 
-gem install gtk3
-
 gem install prawn
 gem install roo-xls
+gem install roo
 gem install barby
-gem install barby/barcode/code_128
-gem install barby/outputter/prawn_outputter
+gem install gtk3
+gem install cairo
 gem install tty-progressbar
 gem install date
 gem install sqlite3
