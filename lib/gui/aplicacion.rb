@@ -15,6 +15,9 @@ module GeneradorEtiquetas
       error: 'ERROR'
     }.freeze
 
+    # Texto del desplegable de hoja mientras no se ha elegido archivo.
+    HOJA_PLACEHOLDER = '(1ª hoja)'.freeze
+
     def self.correr
       Gtk.init
       app = new
@@ -89,7 +92,7 @@ module GeneradorEtiquetas
       @campo_cantidad.value = 0
       @campo_cantidad.tooltip_text = '0 = sin límite'
 
-      @caso_todas = Gtk::CheckButton.new(label: 'Incluir duplicados')
+      @caso_todas = Gtk::CheckButton.new('Incluir duplicados')
       @caso_todas.tooltip_text = 'Procesa cada fila aunque el código ya esté generado'
 
       ajuste_ancho = Gtk::Adjustment.new(Dimensiones::ANCHO_POR_DEFECTO_MM, 10, 300, 1, 5, 0)
@@ -131,7 +134,7 @@ module GeneradorEtiquetas
               end
 
       if hojas.empty?
-        @selector_hoja.append_text('(1ª hoja)')
+        @selector_hoja.append_text(HOJA_PLACEHOLDER)
         @selector_hoja.active = 0
       else
         hojas.each { |nombre| @selector_hoja.append_text(nombre) }
@@ -213,6 +216,8 @@ module GeneradorEtiquetas
       @barra_estado.text = 'Generando…'
       @barra_progreso.show_now
       @barra_progreso.fraction = 0.0
+
+      refrescar_hojas if @selector_hoja.active_text.to_s.include?(HOJA_PLACEHOLDER)
 
       hoja = @selector_hoja.active
       hoja = 0 if hoja.nil? || hoja.negative?

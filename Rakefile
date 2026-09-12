@@ -17,4 +17,13 @@ task :gui do
   ruby 'bin/main.rb'
 end
 
+desc 'GUI smoke headful (solo con DISPLAY; prueba el flujo sin mostrar la ventana)'
+task :gui_smoke do
+  if ENV['DISPLAY'].to_s.empty?
+    warn 'Salta gui_smoke: no hay DISPLAY en este entorno.'
+  else
+    ruby '-Ilib', '_scripts/dev/gui_smoke.rb'
+  end
+end
+
 task default: :test

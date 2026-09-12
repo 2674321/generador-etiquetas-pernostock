@@ -55,6 +55,10 @@ mise exec -- bundle exec ruby bin/main.rb
 mise exec -- bundle exec ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
 mise exec -- bundle exec ruby bin/etiquetas_cli data/demo/codigos_demo.csv --hoja 0
 mise exec -- bundle exec ruby bin/etiquetas_cli --help
+
+# Sonda headful de la GUI (no muestra la ventana; valida el flujo completo).
+# Solo corre si hay DISPLAY; sin él avisa y salta.
+DISPLAY="${DISPLAY:-}" mise exec -- bundle exec rake gui_smoke
 ```
 
 > Requiere un entorno gráfico solo para la GUI. La CLI y el núcleo son headless.

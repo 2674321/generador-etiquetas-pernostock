@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.3] - 2026-09-12
+
+### Añadido
+- **`rake gui_smoke`**: sonda headful de la GUI (`_scripts/dev/gui_smoke.rb`, requiere
+  `DISPLAY`) que construye la ventana sin mostrarla y valida selección de archivo,
+  selector de hoja, generación en hilo, resultados en el TreeView, `actualizar_previa`
+  y la previa Cairo. Pasó en este entorno (8/8).
+- **Refresco defensivo de hojas** en `generar()`: si el selector sigue en "(1ª hoja)",
+  se repuebla antes de leer la hoja activa.
+
+### Corregido
+- `Gtk::CheckButton.new('Incluir duplicados')`: la introspección de gtk3 exigía el
+  label posicional (crasheaba el arranque de la GUI con `label:`).
+
 ## [1.0.2] - 2026-09-12
 
 ### Añadido
