@@ -10,8 +10,15 @@ module GeneradorEtiquetas
 
     attr_reader :ruta
 
-    def self.cargar(ruta_xlsx, omitir_encabezado: true)
-      new(ruta_xlsx).leer(omitir_encabezado: omitir_encabezado)
+    def self.cargar(ruta_xlsx, omitir_encabezado: true, hoja: 0)
+      new(ruta_xlsx).leer(omitir_encabezado: omitir_encabezado, hoja: hoja)
+    end
+
+    # Nombres de las hojas del libro (para selección manual).
+    def self.hojas(ruta_xlsx)
+      libro = new(ruta_xlsx)
+      libro.send(:validar_ruta!)
+      Roo::Spreadsheet.open(libro.ruta).sheets
     end
 
     def initialize(ruta_xlsx)
@@ -20,18 +27,20 @@ module GeneradorEtiquetas
 
     # Devuelve [+filas+, +encabezado_omitido+].
     # Cada fila es {codigo:, descripcion:, fila:}. Las celdas vacías se
-    # devuelven igualmente para que el reporte pueda indicarlas.
-    def leer(omitir_encabezado: true)
+    # devuelven igualmente para que el reporte pueda indicarlas; las filas
+    # completamente vacías se omiten del reporte.
+    def leer(omitir_encabezado: true, hoja: 0)
       validar_ruta!
       libro = Roo::Spreadsheet.open(ruta)
-      hoja  = libro.sheet(0)
+      seleccionada = elegir_hoja(libro, hoja)
       filas = []
 
-      (hoja.first_row..hoja.last_row).each do |numero_fila|
-        datos = hoja.row(numero_fila).to_a
+      (seleccionada.first_row..seleccionada.last_row).each do |numero_fila|
+        datos = seleccionada.row(numero_fila).to_a
         codigo = celda(datos, 0)
         descripcion = celda(datos, 1)
 
+        next if fila_vacia?(codigo, descripcion)
         next if omitir_encabezado && filas.empty? && solo_letras_sin_digitos?(codigo) && !descripcion.empty?
 
         filas << Fila.new(codigo: codigo, descripcion: descripcion, fila: numero_fila)
@@ -56,6 +65,30 @@ module GeneradorEtiquetas
       valor.is_a?(Numeric) ? valor.to_s : valor.to_s.strip
     rescue StandardError
       ""
+    end
+
+    def elegir_hoja(libro, seleccion)
+      nombres = libro.sheets.to_a
+      if seleccion.is_a?(Numeric)
+        indice = seleccion.to_i
+        unless indice.between?(0, nombres.size - 1)
+          raise ArgumentError, "La hoja #{indice} no existe. Hojas: #{nombres.join(', ')}"
+        end
+
+        libro.sheet(indice)
+      else
+        nombre = seleccion.to_s
+        indice = nombres.index(nombre)
+        unless indice
+          raise ArgumentError, "Hoja '#{nombre}' no encontrada. Hojas: #{nombres.join(', ')}"
+        end
+
+        libro.sheet(indice)
+      end
+    end
+
+    def fila_vacia?(codigo, descripcion)
+      codigo.empty? && descripcion.empty?
     end
 
     # Encabezamientos como "Código", "ETIQUETA", "SKU" no contienen dígitos.

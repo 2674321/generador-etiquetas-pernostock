@@ -23,7 +23,8 @@ module GeneradorEtiquetas
       @opciones = {
         ancho_mm: nil, alto_mm: nil,
         salida: nil, filtrar: nil, cantidad: nil,
-        permitir_duplicados: false, quiet: false
+        permitir_duplicados: false, quiet: false,
+        hoja: 0, listar_hojas: false
       }
       @argv = argv.dup
     end
@@ -40,6 +41,13 @@ module GeneradorEtiquetas
         return 1
       end
 
+      if opciones[:listar_hojas]
+        GeneradorEtiquetas::Libro.hojas(archivo).each_with_index do |nombre, indice|
+          puts "#{indice + 1}: #{nombre}"
+        end
+        return 0
+      end
+
       maquina = Maquina.new(salida: opciones[:salida],
                             ancho_mm: opciones[:ancho_mm] || Dimensiones::ANCHO_POR_DEFECTO_MM,
                             alto_mm:  opciones[:alto_mm]  || Dimensiones::ALTO_POR_DEFECTO_MM)
@@ -47,7 +55,8 @@ module GeneradorEtiquetas
       reporte = maquina.procesar(archivo,
                                  filtrar: opciones[:filtrar],
                                  cantidad: opciones[:cantidad],
-                                 permitir_duplicados: opciones[:permitir_duplicados])
+                                 permitir_duplicados: opciones[:permitir_duplicados],
+                                 hoja: opciones[:hoja])
 
       mostrar(reporte)
       0
@@ -69,6 +78,12 @@ module GeneradorEtiquetas
         end
         opts.on('-c', '--cantidad N', Integer, 'Máximo de etiquetas a generar') do |v|
           opciones[:cantidad] = v
+        end
+        opts.on('--hoja N', 'Hoja a leer (índice como 1 o nombre; por defecto la 1ª)') do |v|
+          opciones[:hoja] = v.match?(/\A\d+\z/) ? v.to_i - 1 : v
+        end
+        opts.on('-l', '--listar-hojas', 'Muestra las hojas del archivo y termina') do
+          opciones[:listar_hojas] = true
         end
         opts.on('--todas', 'No omitir códigos duplicados (procesa cada fila)') do
           opciones[:permitir_duplicados] = true
@@ -118,6 +133,8 @@ module GeneradorEtiquetas
           -o, --salida DIR      Directorio de salida (por defecto ./salida)
           -b, --buscar TEXTO    Solo códigos que contengan TEXTO
           -c, --cantidad N      Máximo de etiquetas a generar
+              --hoja N          Hoja a leer (número, como 1, o nombre; por defecto la 1ª)
+          -l, --listar-hojas    Muestra las hojas del archivo y termina
               --todas           No omitir códigos duplicados
               --ancho-mm N      Ancho de etiqueta en mm (por defecto #{Dimensiones::ANCHO_POR_DEFECTO_MM})
               --alto-mm N       Alto de etiqueta en mm (por defecto #{Dimensiones::ALTO_POR_DEFECTO_MM})
@@ -127,6 +144,8 @@ module GeneradorEtiquetas
         Ejemplos:
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --salida salida --buscar PET-10
+          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --listar-hojas
+          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --hoja Codigos
       TXT
     end
   end

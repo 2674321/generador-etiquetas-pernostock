@@ -27,10 +27,11 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
     que el PDF).
   - Acción "Abrir el PDF generado" para cada fila.
 - **CLI portátil (`bin/etiquetas_cli`)** con opciones `--salida`, `--buscar`,
-  `--cantidad`, `--todas`, `--ancho-mm`, `--alto-mm`, `--quiet`.
+  `--cantidad`, `--hoja N|nombre`, `--listar-hojas`, `--todas`, `--ancho-mm`,
+  `--alto-mm`, `--quiet`.
 - **Deduplicación** por código (se omite en el PDF; se informa en el reporte),
-  **validación Code128** (solo ASCII imprimible) y **omisión automática de la cabecera**
-  de la hoja.
+  **validación Code128** (solo ASCII imprimible), **omisión automática de la cabecera**
+  y de **filas vacías** de la hoja, y **selección de hoja** (GUI/CLI).
 - Las variantes históricas se conservan en `lib/legacy/`.
 
 ## Stack
@@ -46,6 +47,7 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
 ## Estructura
 
 ```
+├── Rakefile                     ← rake test / cli / gui
 ├── bin/
 │   ├── main.rb                    ← GUI (requiere display X11)
 │   └── etiquetas_cli              ← CLI portátil
@@ -85,6 +87,8 @@ bundle install      # instala las gems declaradas en el Gemfile
 ```bash
 ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
 ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --salida salida --buscar PET-10
+ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --listar-hojas
+ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --hoja Secundaria
 ruby bin/etiquetas_cli --help
 ```
 
@@ -99,8 +103,9 @@ ruby bin/main.rb   # GUI GTK (requiere display X11)
 
 Flujo:
 1. Seleccionar la hoja de cálculo (`.xlsx` / `.xls` / `.xlsm` / `.ods`).
-2. Ajustar opciones (filtro, cantidad, duplicados, tamaño en mm) y pulsar **Generar etiquetas**.
-3. En el **panel de resultados**, cada fila muestra su estado; al seleccionarla se dibuja
+2. Con la hoja de **Hoja** elegir si se desea (se actualiza al cambiar el archivo).
+3. Ajustar opciones (filtro, cantidad, duplicados, tamaño en mm) y pulsar **Generar etiquetas**.
+4. En el **panel de resultados**, cada fila muestra su estado; al seleccionarla se dibuja
    la **vista previa** (misma geometría que el PDF) y se puede abrir el PDF generado.
 
 > **Entorno DEV:** la reproducción en este PC (Linux/X11, Ruby 3.2 vía mise) está

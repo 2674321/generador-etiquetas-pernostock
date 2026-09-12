@@ -94,16 +94,48 @@ module GeneradorEtiquetas
       ajuste_alto = Gtk::Adjustment.new(Dimensiones::ALTO_POR_DEFECTO_MM, 10, 300, 1, 5, 0)
       @campo_alto = Gtk::SpinButton.new(ajuste_alto, 1, 1)
 
+      @contenedor_hojas = Gtk::Box.new(:horizontal, 4)
+      @contenedor_hojas.pack_start(Gtk::Label.new('Hoja:'), expand: false)
+      refrescar_hojas
+
       etiqueta_tam = Gtk::Label.new('Tamaño (mm):')
 
       barra.pack_start(@campo_filtrar, expand: false)
       barra.pack_start(@campo_cantidad, expand: false)
       barra.pack_start(@caso_todas, expand: false)
+      barra.pack_start(@contenedor_hojas, expand: false)
       barra.pack_start(etiqueta_tam, expand: false)
       barra.pack_start(@campo_ancho, expand: false)
       barra.pack_start(@campo_alto, expand: false)
       barra.pack_start(Gtk::Label.new(''), expand: true)
       barra
+    end
+
+    # Lista las hojas del archivo seleccionado en el desplegable "Hoja".
+    def refrescar_hojas
+      @contenedor_hojas.remove(@selector_hoja) if @selector_hoja
+
+      @selector_hoja = Gtk::ComboBoxText.new
+      archivo = @selector_archivo.filename
+      hojas = if archivo && File.file?(archivo)
+                begin
+                  Libro.hojas(archivo)
+                rescue StandardError
+                  []
+                end
+              else
+                []
+              end
+
+      if hojas.empty?
+        @selector_hoja.append_text('(1ª hoja)')
+        @selector_hoja.active = 0
+      else
+        hojas.each { |nombre| @selector_hoja.append_text(nombre) }
+        @selector_hoja.active = 0
+      end
+      @contenedor_hojas.pack_start(@selector_hoja, expand: false)
+      @contenedor_hojas.show_all
     end
 
     def construir_panel_lista
@@ -156,6 +188,7 @@ module GeneradorEtiquetas
       @boton_generar.signal_connect('clicked') { generar }
       @boton_abrir_pdf.signal_connect('clicked') { abrir_pdf_seleccionado }
       @vista.selection.signal_connect('changed') { actualizar_previa }
+      @selector_archivo.signal_connect('file-set') { refrescar_hojas }
     end
 
     # ---- Generación -------------------------------------------------------
@@ -176,13 +209,17 @@ module GeneradorEtiquetas
       @boton_generar.sensitive = false
       @barra_estado.text = 'Generando…'
 
+      hoja = @selector_hoja.active
+      hoja = 0 if hoja.nil? || hoja.negative?
+
       Thread.new do
         resultado = begin
           maquina.procesar(
             archivo,
             filtrar: texto_vacio(@campo_filtrar.text),
             cantidad: @campo_cantidad.value.to_i.zero? ? nil : @campo_cantidad.value.to_i,
-            permitir_duplicados: @caso_todas.active?
+            permitir_duplicados: @caso_todas.active?,
+            hoja: hoja
           )
         rescue StandardError => e
           e

@@ -24,8 +24,9 @@ Generador de Etiquetas
 
 ## Versión
 
-`v1.0.0` (reconstrucción con correcciones). Histórico original: versión no determinada
-(variantes `main`, GTK, CLI, simple, Shoes → conservadas en `lib/legacy/`).
+`v1.0.1` (reconstrucción con correcciones + selección de hoja). Histórico original:
+versión no determinada (variantes `main`, GTK, CLI, simple, Shoes → conservadas en
+`lib/legacy/`).
 
 ## Runtime
 

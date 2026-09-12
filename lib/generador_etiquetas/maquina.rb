@@ -14,15 +14,19 @@ module GeneradorEtiquetas
       @ancho_pt, @alto_pt = Dimensiones.pagina(ancho_mm: ancho_mm, alto_mm: alto_mm)
     end
 
-    # procesar(ruta, filtrar: nil, cantidad: nil, permitir_duplicados: false)
+    # procesar(ruta, filtrar: nil, cantidad: nil, permitir_duplicados: false,
+    #          omitir_encabezado: true, hoja: 0)
     #   ruta               → XLSX/XLS/ODS con códigos en columna A y descripción en B.
     #   filtrar            → texto; solo se procesan códigos/descripciones que lo contengan.
     #   cantidad           → máx. etiquetas a generar (nil = todas).
     #   permitir_duplicados→ si false, los códigos repetidos se omiten y se reportan.
     #   omitir_encabezado  → si true, salta una primera fila tipo "Código/ETIQUETA/SKU".
+    #   hoja               → índice (0, 1, …) o nombre de la hoja a leer.
     def procesar(ruta, filtrar: nil, cantidad: nil, permitir_duplicados: false,
-                 omitir_encabezado: true)
-      filas, _omitio_encabezado = Libro.cargar(ruta, omitir_encabezado: omitir_encabezado)
+                 omitir_encabezado: true, hoja: 0)
+      filas, _omitio_encabezado = Libro.cargar(ruta,
+                                               omitir_encabezado: omitir_encabezado,
+                                               hoja: hoja)
       FileUtils.mkdir_p(salida)
 
       reporte = Reporte.new(directorio: salida, ancho_pt: ancho_pt, alto_pt: alto_pt)

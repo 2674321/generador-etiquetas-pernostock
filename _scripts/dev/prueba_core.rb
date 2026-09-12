@@ -16,6 +16,7 @@ require_relative "../../lib/generador_etiquetas"
 
 DEMO = "data/demo/codigos_demo.xlsx"
 PROBLEMAS = "data/demo/codigos_con_problemas.xlsx"
+DOS_HOJAS = "data/demo/codigos_dos_hojas.xlsx"
 SALIDA = "tmp/demo_pdfs/core_prueba"
 ANCHO_PT = GeneradorEtiquetas::Dimensiones.pt(100)
 ALTO_PT = GeneradorEtiquetas::Dimensiones.pt(50)
@@ -77,6 +78,25 @@ if File.exist?(PROBLEMAS)
   comprobar(r2.errores.zero?, "0 errores")
 else
   puts "  (no existe #{PROBLEMAS}; se omite)"
+end
+
+if File.exist?(DOS_HOJAS)
+  puts "== Selección de hoja y filas vacías =="
+  comprobar(GeneradorEtiquetas::Libro.hojas(DOS_HOJAS) == %w[Principal Secundaria],
+            "libro.hojas devuelve %w[Principal Secundaria]")
+  r3 = maquina.procesar(DOS_HOJAS, hoja: "Secundaria")
+  comprobar(r3.generadas == 1, "hoja 'Secundaria' → 1 generada (== #{r3.generadas})")
+  r4 = maquina.procesar(DOS_HOJAS, hoja: 0)
+  comprobar(r4.total == 2, "hoja Principal omite la fila vacía (2 filas, == #{r4.total})")
+  hola = begin
+           maquina.procesar(DOS_HOJAS, hoja: "NoExiste")
+           false
+         rescue ArgumentError
+           true
+         end
+  comprobar(hola, "hoja inexistente lanza ArgumentError")
+else
+  puts "  (no existe #{DOS_HOJAS}; se omite)"
 end
 
 puts

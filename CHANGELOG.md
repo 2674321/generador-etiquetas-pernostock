@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.1] - 2026-09-12
+
+### Añadido
+- **Selección de hoja**: el núcleo acepta `hoja:` (índice o nombre); la CLI gana
+  `--hoja N|nombre` y `--listar-hojas`; la GUI añade un desplegable **Hoja** que se
+  actualiza al elegir archivo.
+- **Omisión de filas completamente vacías** en la hoja.
+- **Rakefile** con tareas `test`, `cli`, `gui` (por defecto `test`).
+- Fixture `data/demo/codigos_dos_hojas.xlsx` (hojas Principal/Secundaria + fila vacía)
+  y ampliación de `_scripts/dev/prueba_core.rb`.
+
 ## [1.0.0] - 2026-09-12
 
 ### Añadido
