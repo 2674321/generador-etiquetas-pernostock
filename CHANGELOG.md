@@ -3,6 +3,8 @@
 ## [1.0.1] - 2026-09-12
 
 ### Añadido
+- **Soporte CSV** en la lectura (`Libro`, CLI y GUI): los `.csv` se tratan igual que
+  las hojas (`data/demo/codigos_demo.csv` probado en la prueba del core).
 - **Selección de hoja**: el núcleo acepta `hoja:` (índice o nombre); la CLI gana
   `--hoja N|nombre` y `--listar-hojas`; la GUI añade un desplegable **Hoja** que se
   actualiza al elegir archivo.

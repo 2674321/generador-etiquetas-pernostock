@@ -42,7 +42,7 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
 | GUI | GTK3 (+ Cairo para la vista previa) |
 | Código de barras | Barby (Code128, dibujo de módulos manual) |
 | PDF | Prawn |
-| Lectura de hoja | roo / roo-xls (`.xlsx`, `.xls`, `.xlsm`, `.ods`) |
+| Lectura de hoja | roo / roo-xls (`.xlsx`, `.xls`, `.xlsm`, `.ods`, `.csv`) |
 
 ## Estructura
 
@@ -102,7 +102,7 @@ ruby bin/main.rb   # GUI GTK (requiere display X11)
 ```
 
 Flujo:
-1. Seleccionar la hoja de cálculo (`.xlsx` / `.xls` / `.xlsm` / `.ods`).
+1. Seleccionar la hoja de cálculo o CSV (`.xlsx` / `.xls` / `.xlsm` / `.ods` / `.csv`).
 2. Con la hoja de **Hoja** elegir si se desea (se actualiza al cambiar el archivo).
 3. Ajustar opciones (filtro, cantidad, duplicados, tamaño en mm) y pulsar **Generar etiquetas**.
 4. En el **panel de resultados**, cada fila muestra su estado; al seleccionarla se dibuja

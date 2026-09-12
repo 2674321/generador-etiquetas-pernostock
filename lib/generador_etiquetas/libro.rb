@@ -4,7 +4,7 @@ module GeneradorEtiquetas
   # Lectura portable de la hoja de cálculo (Roo).
   # Columna A = código, columna B = descripción (opcional).
   class Libro
-    EXTENSIONES = %w[.xlsx .xls .xlsm .ods].freeze
+    EXTENSIONES = %w[.xlsx .xls .xlsm .ods .csv].freeze
 
     Fila = Struct.new(:codigo, :descripcion, :fila, keyword_init: true)
 
@@ -57,7 +57,7 @@ module GeneradorEtiquetas
       extension = File.extname(ruta).downcase
       return if EXTENSIONES.include?(extension)
 
-      raise ArgumentError, "Formato no soportado (#{extension}). Se espera XLS/XLSX/ODS."
+      raise ArgumentError, "Formato no soportado (#{extension}). Se espera XLS/XLSX/ODS/CSV."
     end
 
     def celda(datos, indice)

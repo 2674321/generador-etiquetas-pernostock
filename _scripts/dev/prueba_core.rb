@@ -17,6 +17,7 @@ require_relative "../../lib/generador_etiquetas"
 DEMO = "data/demo/codigos_demo.xlsx"
 PROBLEMAS = "data/demo/codigos_con_problemas.xlsx"
 DOS_HOJAS = "data/demo/codigos_dos_hojas.xlsx"
+DEMO_CSV = "data/demo/codigos_demo.csv"
 SALIDA = "tmp/demo_pdfs/core_prueba"
 ANCHO_PT = GeneradorEtiquetas::Dimensiones.pt(100)
 ALTO_PT = GeneradorEtiquetas::Dimensiones.pt(50)
@@ -97,6 +98,16 @@ if File.exist?(DOS_HOJAS)
   comprobar(hola, "hoja inexistente lanza ArgumentError")
 else
   puts "  (no existe #{DOS_HOJAS}; se omite)"
+end
+
+puts "== CSV (mismo contenido que el fixture con problemas) =="
+if File.exist?(DEMO_CSV)
+  csv = maquina.procesar(DEMO_CSV)
+  comprobar(csv.generadas == 2, "CSV → 2 generadas (== #{csv.generadas})")
+  comprobar(csv.duplicadas == 2, "CSV → 2 duplicadas omitidas (== #{csv.duplicadas})")
+  comprobar(csv.invalidas == 1, "CSV → 1 inválida omitida (== #{csv.invalidas})")
+else
+  puts "  (no existe #{DEMO_CSV}; se omite)"
 end
 
 puts

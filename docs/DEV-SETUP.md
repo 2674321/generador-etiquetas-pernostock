@@ -53,6 +53,7 @@ mise exec -- bundle exec ruby bin/main.rb
 
 # CLI portátil (100×50 mm por defecto; salida en ./salida)
 mise exec -- bundle exec ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
+mise exec -- bundle exec ruby bin/etiquetas_cli data/demo/codigos_demo.csv --hoja 0
 mise exec -- bundle exec ruby bin/etiquetas_cli --help
 ```
 

@@ -1,10 +1,9 @@
 # data/demo — Fixtures de prueba (ficticios)
 
-Esta carpeta contiene datos **demo y ficticios** para probar el Generador de Etiquetas
-sin usar datos reales de PernoStock Ltda.
-
-> Los archivos `*.xlsx` están excluidos de git (`.gitignore`). Si falta el fixture,
-> regenéralo así:
+Este repositorio **no incluye** los archivos Excel originales de PernoStock Ltda.
+Los fixtures `.xlsx` son **ficticios** y están excluidos de git (`.gitignore`);
+si faltan, regenéralos así (`codigos_demo.csv` sí está versionado y no necesita
+regenerarse):
 
 ```bash
 python3 - <<'PY'
