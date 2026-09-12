@@ -4,9 +4,9 @@ require 'optparse'
 
 require_relative '../generador_etiquetas'
 
-# Interfaz de consola portable.
+# Interfaz de consola portable de PernoLabel.
 #
-#   ruby bin/etiquetas_cli ARCHIVO [OPCIONES]
+#   ruby bin/pernolabel ARCHIVO [OPCIONES]
 #
 # Todas las rutas se resuelven respecto al directorio de trabajo (portable);
 # por defecto la salida se escribe en ./salida.
@@ -25,7 +25,8 @@ module GeneradorEtiquetas
         salida: nil, filtrar: nil, cantidad: nil,
         permitir_duplicados: false, quiet: false,
         hoja: 0, listar_hojas: false, lote: false,
-        lote_margen_mm: nil, lote_hueco_mm: nil, lote_pagina: nil
+        lote_margen_mm: nil, lote_hueco_mm: nil, lote_pagina: nil,
+        codigo: LayoutEtiqueta::TIPO_CODE128
       }
       @argv = argv.dup
     end
@@ -64,6 +65,7 @@ module GeneradorEtiquetas
                                  lote_margen_pt: Dimensiones.pt(opciones[:lote_margen_mm]),
                                  lote_hueco_pt: Dimensiones.pt(opciones[:lote_hueco_mm]),
                                  lote_pagina_pt: opciones[:lote_pagina]&.map { |mm| Dimensiones.pt(mm) },
+                                 tipo_codigo: opciones[:codigo],
                                  en_progreso: progreso&.callback)
       progreso&.terminar
       transcurrido = Process.clock_gettime(Process::CLOCK_MONOTONIC) - inicio
@@ -160,10 +162,15 @@ module GeneradorEtiquetas
         opts.on('--alto-mm N', Float, "Alto de etiqueta en mm (por defecto #{Dimensiones::ALTO_POR_DEFECTO_MM})") do |v|
           opciones[:alto_mm] = v
         end
+        opts.on('--codigo TIPO',
+                'Tipo de código: code128 (barras), qr o ambos (defecto code128)') do |v|
+          opciones[:codigo] = LayoutEtiqueta.normalizar_tipo(v)
+        end
+
         opts.on('-q', '--quiet', 'Solo resumen') { opciones[:quiet] = true }
         opts.on('-h', '--help', 'Ayuda') { @help = true }
         opts.on('-V', '--version', 'Muestra la versión y termina') do
-          puts "GeneradorEtiquetas #{VERSION}"
+          puts "PernoLabel #{VERSION}"
           exit 0
         end
       end
@@ -195,7 +202,7 @@ module GeneradorEtiquetas
     def uso
       <<~TXT
         Uso:
-          ruby bin/etiquetas_cli ARCHIVO [OPCIONES]
+          ruby bin/pernolabel ARCHIVO [OPCIONES]
 
         Genera etiquetas Code128 (PDF) a partir de una hoja de cálculo.
         Columna A = código · Columna B = descripción (opcional).
@@ -214,16 +221,18 @@ module GeneradorEtiquetas
               --lote-margen-mm MM   Margen de la hoja del lote en mm (defecto 20)
               --lote-hueco-mm MM    Separación entre etiquetas del lote en mm (defecto 8)
               --lote-pagina ANCHOxALTO   Tamaño de hoja del lote en mm, p. ej. 210x297 (defecto A4)
+              --codigo TIPO        Tipo de código: code128, qr o ambos (defecto code128)
           -h, --help            Esta ayuda
 
         Ejemplos:
-          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
-          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --salida salida --buscar PET-10
-          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --listar-hojas
-          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --hoja Codigos
-          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote
-          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote --lote-margen-mm 10 --lote-hueco-mm 5
-          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote --lote-pagina 150x100
+          ruby bin/pernolabel data/demo/codigos_demo.xlsx
+          ruby bin/pernolabel data/demo/codigos_demo.xlsx --salida salida --buscar PET-10
+          ruby bin/pernolabel data/demo/codigos_demo.xlsx --listar-hojas
+          ruby bin/pernolabel data/demo/codigos_demo.xlsx --hoja Codigos
+          ruby bin/pernolabel data/demo/codigos_demo.xlsx --codigo qr
+          ruby bin/pernolabel data/demo/codigos_demo.xlsx --codigo ambos --lote
+          ruby bin/pernolabel data/demo/codigos_demo.xlsx --lote --lote-margen-mm 10 --lote-hueco-mm 5
+          ruby bin/pernolabel data/demo/codigos_demo.xlsx --lote --lote-pagina 150x100
       TXT
     end
   end

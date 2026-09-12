@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-# Punto de entrada del núcleo del Generador de Etiquetas (sin GUI).
+# Punto de entrada del núcleo de PernoLabel (sin GUI).
 # Uso: require_relative 'generador_etiquetas'
 
 require 'prawn'
 require 'barby'
 require 'barby/barcode/code_128'
+require 'rqrcode'
 require 'roo'
 require 'roo-xls'
 require 'fileutils'

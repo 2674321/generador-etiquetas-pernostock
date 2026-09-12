@@ -75,7 +75,8 @@ if system("which", "pdfinfo", out: File::NULL, err: File::NULL)
   meta = `pdfinfo #{File.join(SALIDA, 'PET-1001.pdf')}`
   comprobar(meta.include?("Title:           Etiqueta PET-1001"), "Title en metadatos")
   comprobar(meta.include?("BATERIA DEMO 001"), "Subject (descripción) en metadatos")
-  comprobar(meta.include?("GeneradorEtiquetas"), "Author con la versión")
+  comprobar(meta.include?("Author:") && meta.include?("PernoLabel"),
+            "Author con la identidad PernoLabel")
 else
   puts "  (pdfinfo no disponible; se omite esta comprobación)"
 end
@@ -106,6 +107,36 @@ puts "== Callback de progreso =="
 avances = []
 maquina.procesar(DEMO, en_progreso: ->(hechas, total) { avances << [hechas, total] })
 comprobar(avances.last == [5, 5], "se avisa de 5/5 (== #{avances.last.inspect})")
+
+puts "== Tipos de código: QR y ambos =="
+qr_dir = "#{SALIDA}/qr"
+FileUtils.mkdir_p(qr_dir)
+qr = GeneradorEtiquetas::Maquina.new(salida: qr_dir)
+r_qr = qr.procesar(DEMO, cantidad: 1, tipo_codigo: :qr)
+comprobar(r_qr.generadas == 1, "QR → 1 generada (== #{r_qr.generadas})")
+r_ambos = qr.procesar(DEMO, cantidad: 1, tipo_codigo: "ambos")
+comprobar(r_ambos.generadas == 1, "ambos → 1 generada (== #{r_ambos.generadas})")
+tipo_cuadre = begin
+  GeneradorEtiquetas::LayoutEtiqueta.normalizar_tipo("barras")
+  GeneradorEtiquetas::LayoutEtiqueta.normalizar_tipo(:holograma)
+  false
+rescue ArgumentError
+  true
+end
+comprobar(tipo_cuadre, "tipo inválido lanza ArgumentError")
+
+if system("which", "pdftoppm", out: File::NULL, err: File::NULL)
+  qr_png = "#{qr_dir}/PET-1001"
+system("pdftoppm", "-r", "72", "-singlefile", "-png", "-gray",
+       File.join(qr_dir, "PET-1001.pdf"), qr_png)
+  qr_png = "#{qr_png}.png"
+  if system("which", "identify", out: File::NULL, err: File::NULL) && File.exist?(qr_png)
+    info = `identify -format "%[fx:mean]" #{qr_png}`.to_f
+    comprobar(info.between?(0.05, 0.95), "QR renderiza contraste (#{info.round(3)})")
+  else
+    puts "  (no hay identify; se omite el chequeo de píxeles del QR)"
+  end
+end
 
 if File.exist?(PROBLEMAS)
   puts "== Caminos negativos (fixture con problemas) =="

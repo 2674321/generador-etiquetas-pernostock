@@ -1,8 +1,9 @@
-# PROJECT.md — Generador de Etiquetas
+# PROJECT.md — PernoLabel
 
 ## Nombre
 
-Generador de Etiquetas
+**PernoLabel** (identidad producto; "Etiquetas Pernostock"). El núcleo técnico
+conserva el espacio de nombres histórico `GeneradorEtiquetas`.
 
 ## Empresa / contexto
 
@@ -18,16 +19,17 @@ Generador de Etiquetas
 - Código recuperado y publicado: **estable / histórico**.
 - Preparación DEV para ejecutarlo en el PC actual: **completa**.
 - **Reconstrucción del sistema (2026-09-12):** núcleo portátil sin GUI, etiquetas
-  corregidas a tamaño real (100×50 mm) y GUI con **panel de resultados + vista previa**.
-- Core funcional (hoja de cálculo → códigos Code128 → PDF) verificado sin GUI con
+  corregidas a tamaño real (100×50 mm), GUI con **panel de resultados + vista previa**,
+  códigos **Code128 / QR / ambos** y **rebranding de producto a PernoLabel**.
+- Core funcional (hoja de cálculo → Code128/QR → PDF) verificado sin GUI con
   datos demo ficticios (`_scripts/dev/prueba_core.rb`).
 
 ## Versión
 
-`v1.3.0` (reconstrucción con correcciones + selección de hoja + CSV + progreso y
-metadatos + lote con hoja/margen/hueco configurables y vista previa paginada +
-GUI verificada headful). Histórico original: versión no determinada (variantes
-`main`, GTK, CLI, simple, Shoes → conservadas en `lib/legacy/`).
+`v1.4.0` (reconstrucción con correcciones + selección de hoja + CSV + progreso y
+metadatos + lote configurable con vista previa paginada + **Code128/QR/ambos** +
+**rebranding PernoLabel** + GUI verificada headful). Histórico original: versión no
+determinada (variantes `main`, GTK, CLI, simple, Shoes → conservadas en `lib/legacy/`).
 
 ## Runtime
 

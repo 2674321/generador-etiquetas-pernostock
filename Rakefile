@@ -9,7 +9,7 @@ end
 desc 'CLI: genera etiquetas desde la 1ª hoja del archivo demo'
 task :cli, [:archivo] do |_t, args|
   archivo = args[:archivo] || 'data/demo/codigos_demo.xlsx'
-  ruby "bin/etiquetas_cli #{archivo}"
+  ruby "bin/pernolabel #{archivo}"
 end
 
 desc 'GUI (requiere display X11)'

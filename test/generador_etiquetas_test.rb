@@ -76,6 +76,63 @@ module GeneradorEtiquetas
     end
   end
 
+  class TestEtiquetaQr < Minitest::Test
+    def test_qr_modules_matriz_cuadrada
+      e = Etiqueta.new(codigo: 'PET-1001')
+      m = e.qr_modules
+      assert_equal m.length, m.first.length
+      assert_equal 1, m.length % 4, 'tamaño de QR es 4n+1'
+      assert(m.flatten.any? { |v| v })
+    end
+
+    def test_qr_invalido_lanza_argument_error
+      e = Etiqueta.new(codigo: '')
+      assert_raises(ArgumentError) { e.qr_modules }
+    end
+  end
+
+  class TestLayoutQr < Minitest::Test
+    def setup
+      @etiqueta = Etiqueta.new(codigo: 'PET-1001', descripcion: 'BATERIA DEMO 001')
+      @opciones = { ancho_pt: Dimensiones.pt(100), alto_pt: Dimensiones.pt(50) }
+    end
+
+    def layout_con_tipo(tipo)
+      LayoutEtiqueta.calcular(@etiqueta,
+                              ancho_pt: @opciones[:ancho_pt],
+                              alto_pt: @opciones[:alto_pt],
+                              tipo_codigo: tipo)
+    end
+
+    def test_solo_qr_ocupa_zona_codigo
+      layout = layout_con_tipo(:qr)
+      assert_nil layout.barras
+      refute_nil layout.qr
+      q = layout.qr
+      assert_operator q[:x], :>=, Dimensiones::PADDING_PT
+      assert_operator q[:x] + q[:lado], :<=, layout.pagina_ancho - Dimensiones::PADDING_PT
+      assert_equal q[:modulos], q[:matriz].size
+      assert_nil layout.encoding
+    end
+
+    def test_ambos_encoge_barras_y_deja_espacio_al_qr
+      layout = layout_con_tipo(:ambos)
+      refute_nil layout.barras
+      refute_nil layout.qr
+      assert_operator layout.barras.ancho + layout.qr[:lado], :<, layout.pagina_ancho
+      assert_operator layout.qr[:x], :>, layout.barras.x + layout.barras.ancho
+      assert_equal layout.qr[:modulos], layout.qr[:matriz].size
+    end
+
+    def test_normalizar_tipo
+      assert_equal :code128, LayoutEtiqueta.normalizar_tipo('code128')
+      assert_equal :code128, LayoutEtiqueta.normalizar_tipo(:barras)
+      assert_equal :qr, LayoutEtiqueta.normalizar_tipo('qr')
+      assert_equal :ambos, LayoutEtiqueta.normalizar_tipo(:ambos)
+      assert_raises(ArgumentError) { LayoutEtiqueta.normalizar_tipo(:innecesario) }
+    end
+  end
+
   class TestLibro < Minitest::Test
     ROOT = File.expand_path('..', __dir__)
 
@@ -272,6 +329,27 @@ module GeneradorEtiquetas
       m = %r{/MediaBox \[\d+ \d+ ([0-9.]+) ([0-9.]+)\]}.match(binario)
       assert_in_delta Dimensiones.pt(150), m[1].to_f, 0.1
       assert_in_delta Dimensiones.pt(100), m[2].to_f, 0.1
+    end
+
+    def test_tipo_codigo_qr_y_ambos
+      reporte_qr = @maquina.procesar(File.join(ROOT, 'data/demo/codigos_demo.xlsx'),
+                                     tipo_codigo: :qr)
+      assert_equal 5, reporte_qr.generadas
+      assert File.file?(File.join(@dir, 'PET-1001.pdf'))
+
+      reporte_ambos = @maquina.procesar(File.join(ROOT, 'data/demo/codigos_demo.xlsx'),
+                                        tipo_codigo: 'ambos', cantidad: 1)
+      assert_equal 1, reporte_ambos.generadas
+      binario = File.binread(File.join(@dir, 'PET-1001.pdf'))
+      assert_match %r{/Author <feff005000650072006e006f004c006100620065006c>},
+                   binario, 'metadatos con identidad PernoLabel'
+    end
+
+    def test_tipo_codigo_invalido_lanza_argument_error
+      assert_raises(ArgumentError) do
+        @maquina.procesar(File.join(ROOT, 'data/demo/codigos_demo.xlsx'),
+                          tipo_codigo: :holograma)
+      end
     end
   end
 

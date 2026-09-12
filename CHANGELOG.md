@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.4.0] - 2026-09-12
+
+### Añadido
+- **Código QR como tipo seleccionable** (`rqrcode`): `LayoutEtiqueta` admite
+  `TIPO_CODE128=:code128`, `TIPO_QR=:qr` y `TIPO_AMBOS=:ambos` (barras a la
+  izquierda + QR a la derecha, `QR_ANCHO_BASE` 0.32 y separación 4 pt). El QR
+  codifica el mismo código de producto (nivel M). `Etiqueta#qr_modules` expone la
+  matriz 21×21 para dibujado compartido (PDF/Cairo).
+- **Opciones de código en CLI** (`--codigo code128|qr|ambos`, alias `barras`),
+  **GUI** (desplegable "Código:") y **API** (`tipo_codigo:` en
+  `Maquina#procesar/#generar_pdf/#generar_lote`, `PdfEtiqueta.generar`,
+  `LoteEtiqueta.generar`, `LayoutEtiqueta.calcular`, `PanelHoja`). `normalizar_tipo`
+  valida el valor y lanza `ArgumentError` si es desconocido (el CLI lo reporta).
+- **Rebranding de producto a PernoLabel**: CLI renombrado a `bin/pernolabel`
+  (con `bin/etiquetas_cli` como alias de compatibilidad), `--version` imprime
+  `PernoLabel 1.4.0`, autor del PDF `PernoLabel`, título de ventana
+  "PernoLabel — Etiquetas Pernostock" y nombres de producto en la documentación.
+  El núcleo conserva el espacio de nombres `GeneradorEtiquetas`.
+- Docs actualizadas: README (QR, estructura, CLI, GUI), PROJECT, DEV-SETUP,
+  `docs/gems.txt` (rqrcode).
+
 ## [1.3.0] - 2026-09-12
 
 ### Añadido

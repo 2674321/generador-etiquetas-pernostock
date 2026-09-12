@@ -1,38 +1,42 @@
-# Generador de Etiquetas — PernoStock Ltda.
+# PernoLabel — Etiquetas Pernostock
 
-Aplicación de escritorio en **Ruby + GTK3** para generar etiquetas de códigos de
-barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cálculo
-(Excel/ODS).
+Aplicación de escritorio en **Ruby + GTK3** para generar etiquetas de producto con
+**código de barras Code128, QR o ambos** en PDF (100×50 mm por defecto), leyendo
+los códigos desde una hoja de cálculo (Excel/ODS/CSV).
 
 > **⚠️ Software recuperado de material histórico de trabajo** (enero–febrero 2024).
 > Fue desarrollado como parte de un proyecto de formación (Técnico en Programación)
 > para **PernoStock Ltda.** El repositorio se publica como referencia y para preservar
 > el código; esta iteración además **reconstruye el sistema** con un núcleo portátil,
-> etiquetas a tamaño real corregidas y un panel de resultados en la GUI.
+> etiquetas a tamaño real corregidas, códigos Code128/QR y un panel de resultados en
+> la GUI.
 
 ## Características
 
 - **Núcleo independiente de la GUI** (`lib/generador_etiquetas/`): lee la hoja de
   cálculo, valida códigos, calcula el layout y genera PDFs. Portable y sin dependencias
   de escritorio.
-- **Etiquetas a tamaño real (100×50 mm)**: la geometría (descripción, barras y código
+- **Código Code128 y/o QR**: por etiqueta/configuración se elige **Code128 (barras)**,
+  **QR** o **ambos** (barras a la izquierda + QR a la derecha). El QR codifica el mismo
+  código de producto (nivel M, `rqrcode`).
+- **Etiquetas a tamaño real (100×50 mm)**: la geometría (descripción, código y texto
   legible) se calcula una única vez en `LayoutEtiqueta` y alimenta **tanto el PDF como
   la vista previa**, de modo que lo que se ve es exactamente lo que se imprime.
   *(Se corrige la versión histórica, que generaba etiquetas de solo 75×28 pt.)*
 - **GUI (`bin/main.rb`)** con:
-  - Selector de hoja de cálculo, filtro por texto, cantidad máxima, inclusión de
-    duplicados y tamaño configurable (mm).
+  - Selector de archivo/hoja, filtro por texto, cantidad máxima, inclusión de
+    duplicados, tamaño configurable (mm) y **desplegable de tipo de código**.
   - **Panel de resultados**: tabla con estado (generada / duplicada / inválida /
     error / **lote**) y **vista previa** de la etiqueta seleccionada o de la
-    **primera hoja del lote** (dibujada con Cairo, misma geometría que el PDF).
+    **hoja del lote** (dibujada con Cairo, misma geometría que el PDF).
   - Acción "Abrir el PDF generado" para cada fila.
-- **CLI portátil (`bin/etiquetas_cli`)** con opciones `--salida`, `--buscar`,
+- **CLI portátil (`bin/pernolabel`)** con opciones `--salida`, `--buscar`,
   `--cantidad`, `--hoja N|nombre`, `--listar-hojas`, `--todas`, `--ancho-mm`,
-  `--alto-mm`, `--lote`, `--lote-margen-mm`, `--lote-hueco-mm`,
-  `--lote-pagina ANCHOxALTO`, `--quiet`, barra de **progreso** en terminal y
-  resumen con tiempo.
-- **PDFs con metadatos** (código/descripción/versión) y **vista previa** en la GUI
-  con la misma geometría que se imprime.
+  `--alto-mm`, `--codigo code128|qr|ambos`, `--lote`, `--lote-margen-mm`,
+  `--lote-hueco-mm`, `--lote-pagina ANCHOxALTO`, `--quiet`, barra de **progreso**
+  en terminal y resumen con tiempo.
+- **PDFs con metadatos** (código/descripción, autor `PernoLabel`) y **vista previa**
+  en la GUI con la misma geometría que se imprime.
 - **Lote**: `--lote` (CLI) o casilla **"Lote A4"** (GUI) genera `lote_A4.pdf`,
   hoja imprimible con todas las etiquetas en cuadrícula (varias páginas si no
   caben). Configurables: **hoja** (`--lote-pagina ANCHOxALTO`, deg. A4),
@@ -42,8 +46,9 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
   se dibuja la cuadrícula de una página exactamente como el PDF, con un selector
   **"Pág. del lote"** cuando hay más de una hoja.
 - **Deduplicación** por código (se omite en el PDF; se informa en el reporte),
-  **validación Code128** (solo ASCII imprimible), **omisión automática de la cabecera**
-  y de **filas vacías** de la hoja, y **selección de hoja** (GUI/CLI).
+  **validación del código** (ASCII imprimible, requerido por Code128 y QR),
+  **omisión automática de la cabecera** y de **filas vacías** de la hoja, y
+  **selección de hoja** (GUI/CLI).
 - Las variantes históricas se conservan en `lib/legacy/`.
 
 ## Stack
@@ -52,7 +57,7 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
 |---|---|
 | Lenguaje | Ruby 3.2.x |
 | GUI | GTK3 (+ Cairo para la vista previa) |
-| Código de barras | Barby (Code128, dibujo de módulos manual) |
+| Código de barras | Barby (Code128) + rqrcode (QR), dibujo manual de módulos |
 | PDF | Prawn |
 | Lectura de hoja | roo / roo-xls (`.xlsx`, `.xls`, `.xlsm`, `.ods`, `.csv`) |
 
@@ -62,14 +67,15 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
 ├── Rakefile                     ← rake test / cli / gui
 ├── bin/
 │   ├── main.rb                    ← GUI (requiere display X11)
-│   └── etiquetas_cli              ← CLI portátil
+│   ├── pernolabel                 ← CLI portátil
+│   └── etiquetas_cli              ← alias histórico del CLI
 ├── lib/
 │   ├── generador_etiquetas.rb     ← require central del núcleo
 │   ├── generador_etiquetas/       ← NÚCLEO (sin GUI)
 │   │   ├── dimensiones.rb         ← geometría y conversión mm→pt
-│   │   ├── etiqueta.rb            ← modelo y validación del código
+│   │   ├── etiqueta.rb            ← modelo, validación, code128 y QR
 │   │   ├── libro.rb               ← lectura de la hoja (Roo)
-│   │   ├── layout.rb              ← composición de la etiqueta (top-down)
+│   │   ├── layout.rb              ← composición (barras/QR, top-down)
 │   │   ├── dibujo.rb              ← flujo de dibujo compartido
 │   │   ├── pdf.rb                 ← destino PDF (Prawn)
 │   │   ├── reporte.rb             ← resultados por fila y totales
@@ -77,7 +83,8 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
 │   │   └── cli.rb                 ← interfaz de consola
 │   ├── gui/
 │   │   ├── aplicacion.rb          ← ventana con panel de resultados
-│   │   └── panel_etiqueta.rb      ← destino de vista previa (Cairo)
+│   │   ├── panel_etiqueta.rb      ← destino de vista previa (Cairo)
+│   │   └── panel_hoja.rb          ← vista previa del lote (paginada)
 │   └── legacy/                    ← variantes históricas conservadas
 ├── data/demo/                     ← fixtures ficticios (no versionados)
 └── docs/
@@ -97,16 +104,18 @@ bundle install      # instala las gems declaradas en el Gemfile
 ## Ejecución (CLI)
 
 ```bash
-ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
-ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --salida salida --buscar PET-10
-ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --listar-hojas
-ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --hoja Secundaria
-ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote
-ruby bin/etiquetas_cli --help
+ruby bin/pernolabel data/demo/codigos_demo.xlsx
+ruby bin/pernolabel data/demo/codigos_demo.xlsx --salida salida --buscar PET-10
+ruby bin/pernolabel data/demo/codigos_demo.xlsx --listar-hojas
+ruby bin/pernolabel data/demo/codigos_demo.xlsx --hoja Secundaria
+ruby bin/pernolabel data/demo/codigos_demo.xlsx --codigo qr
+ruby bin/pernolabel data/demo/codigos_demo.xlsx --codigo ambos --lote
+ruby bin/pernolabel data/demo/codigos_demo.xlsx --lote
+ruby bin/pernolabel --help
 ```
 
 Escribe los PDF en `./salida` por defecto (portable). Muestra un reporte por fila y
-un resumen al final.
+un resumen al final. `bin/etiquetas_cli` sigue disponible como alias del CLI.
 
 ## Ejecución (GUI)
 
@@ -117,14 +126,14 @@ ruby bin/main.rb   # GUI GTK (requiere display X11)
 Flujo:
 1. Seleccionar la hoja de cálculo o CSV (`.xlsx` / `.xls` / `.xlsm` / `.ods` / `.csv`).
 2. Con la hoja de **Hoja** elegir si se desea (se actualiza al cambiar el archivo).
-3. Ajustar opciones (filtro, cantidad, duplicados, tamaño en mm, **lote con su
-   margen/separación**) y pulsar **Generar etiquetas**.
+3. Ajustar opciones (filtro, cantidad, duplicados, tamaño en mm, **tipo de código**
+   y **lote con su margen/separación**) y pulsar **Generar etiquetas**.
 4. En el **panel de resultados**, cada fila muestra su estado; al seleccionarla se dibuja
    la **vista previa** (misma geometría que el PDF) y se puede abrir el PDF generado.
 
 > **Entorno DEV:** la reproducción en este PC (Linux/X11, Ruby 3.2 vía mise) está
 > verificada — ver [`docs/DEV-SETUP.md`](docs/DEV-SETUP.md). El core
-> (hoja → Code128 → PDF) se prueba sin GUI con `_scripts/dev/prueba_core.rb`.
+> (hoja → Code128/QR → PDF) se prueba sin GUI con `_scripts/dev/prueba_core.rb`.
 
 ## Prueba del core (headless)
 
@@ -137,7 +146,7 @@ La suite `test/generador_etiquetas_test.rb` (minitest) cubre validación y Code1
 dimensiones, composición, lectura (XLSX/CSV/hojas/filas vacías) y la máquina completa.
 El smoke test genera los 5 PDFs demo, comprueba que son 100×50 mm, verifica el contenido
 textual de cada PDF y ejercita los caminos negativos (encabezado, duplicados, código no
-imprimible, selección de hoja y CSV).
+imprimible, selección de hoja y CSV), incluidos los tipos de código `qr` y `ambos`.
 
 ## Datos de ejemplo
 

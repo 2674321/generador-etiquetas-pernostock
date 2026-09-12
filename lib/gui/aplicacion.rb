@@ -40,7 +40,7 @@ module GeneradorEtiquetas
 
     def construir_ui
       @ventana = Gtk::Window.new
-      @ventana.set_title('Generador de Etiquetas Pernostock')
+      @ventana.set_title('PernoLabel — Etiquetas Pernostock')
       @ventana.set_default_size(980, 640)
       @ventana.border_width = 10
 
@@ -120,6 +120,17 @@ module GeneradorEtiquetas
       etiqueta_tam = Gtk::Label.new('Tamaño (mm):')
       etiqueta_hueco = Gtk::Label.new('Sep. lote (mm):')
       etiqueta_margen = Gtk::Label.new('Margen (mm):')
+      etiqueta_codigo = Gtk::Label.new('Código:')
+
+      @opciones_codigo = [
+        ['Code128 (barras)', LayoutEtiqueta::TIPO_CODE128],
+        ['QR', LayoutEtiqueta::TIPO_QR],
+        ['Code128 + QR', LayoutEtiqueta::TIPO_AMBOS]
+      ].freeze
+      @campo_codigo = Gtk::ComboBoxText.new
+      @opciones_codigo.each { |(texto, _valor)| @campo_codigo.append_text(texto) }
+      @campo_codigo.active = 0
+      @campo_codigo.tooltip_text = 'Código dominante de la etiqueta: barras, QR o ambos'
 
       barra.pack_start(@campo_filtrar, expand: false)
       barra.pack_start(@campo_cantidad, expand: false)
@@ -129,6 +140,8 @@ module GeneradorEtiquetas
       barra.pack_start(@campo_hueco_lote, expand: false)
       barra.pack_start(etiqueta_margen, expand: false)
       barra.pack_start(@campo_margen_lote, expand: false)
+      barra.pack_start(etiqueta_codigo, expand: false)
+      barra.pack_start(@campo_codigo, expand: false)
       barra.pack_start(@contenedor_hojas, expand: false)
       barra.pack_start(etiqueta_tam, expand: false)
       barra.pack_start(@campo_ancho, expand: false)
@@ -267,6 +280,7 @@ module GeneradorEtiquetas
             lote: @caso_lote.active?,
             lote_margen_pt: Dimensiones.pt(@campo_margen_lote.value.to_f),
             lote_hueco_pt: Dimensiones.pt(@campo_hueco_lote.value.to_f),
+            tipo_codigo: tipo_codigo_actual,
             en_progreso: proc do |hechas, total|
               fraccion = total.zero? ? 0.0 : hechas.to_f / total
               GLib::Idle.add { @barra_progreso.fraction = fraccion; false }
@@ -349,7 +363,8 @@ module GeneradorEtiquetas
       if etiqueta.codigo_valido?
         @layout_previo = LayoutEtiqueta.calcular(etiqueta,
                                                  ancho_pt: Dimensiones.pt(@campo_ancho.value.to_f),
-                                                 alto_pt: Dimensiones.pt(@campo_alto.value.to_f))
+                                                 alto_pt: Dimensiones.pt(@campo_alto.value.to_f),
+                                                 tipo_codigo: tipo_codigo_actual)
         estado_html = {
           generada: '✓ generado', duplicada: '◇ duplicado omitido',
           invalida: '✗ código inválido', error: '✗ error'
@@ -390,8 +405,14 @@ module GeneradorEtiquetas
       PanelHoja.new(
         etiquetas,
         ancho_etiqueta_pt: ancho_pt, alto_etiqueta_pt: alto_pt,
-        margen_pt: margen_pt, hueco_pt: hueco_pt, pagina: pagina
+        margen_pt: margen_pt, hueco_pt: hueco_pt, pagina: pagina,
+        tipo_codigo: tipo_codigo_actual
       )
+    end
+
+    # Tipo de código seleccionado en el desplegable (símbolo).
+    def tipo_codigo_actual
+      @opciones_codigo[@campo_codigo.active][1]
     end
 
     def dibujar_previa(cr)

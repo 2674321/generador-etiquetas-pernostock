@@ -32,10 +32,11 @@ module GeneradorEtiquetas
     def procesar(ruta, filtrar: nil, cantidad: nil, permitir_duplicados: false,
                  omitir_encabezado: true, hoja: 0, en_progreso: nil, lote: false,
                  lote_margen_pt: LoteEtiqueta::MARGEN_PT, lote_hueco_pt: LoteEtiqueta::HUECO_PT,
-                 lote_pagina_pt: nil)
+                 lote_pagina_pt: nil, tipo_codigo: LayoutEtiqueta::TIPO_CODE128)
       filas, _omitio_encabezado = Libro.cargar(ruta,
                                                omitir_encabezado: omitir_encabezado,
                                                hoja: hoja)
+      tipo_codigo = LayoutEtiqueta.normalizar_tipo(tipo_codigo)
       FileUtils.mkdir_p(salida)
 
       reporte = Reporte.new(directorio: salida, ancho_pt: ancho_pt, alto_pt: alto_pt)
@@ -70,7 +71,7 @@ module GeneradorEtiquetas
 
         vistos[codigo] = true
         generadas += 1
-        ruta_pdf = generar_pdf(codigo, descripcion, fila.fila)
+        ruta_pdf = generar_pdf(codigo, descripcion, fila.fila, tipo_codigo)
         reporte << ruta_pdf
         if ruta_pdf.generada?
           generadas_etiquetas << Etiqueta.new(codigo: codigo, descripcion: descripcion)
@@ -78,7 +79,7 @@ module GeneradorEtiquetas
         en_progreso&.call(indice + 1, total)
       end
 
-      generar_lote(reporte, generadas_etiquetas, lote_margen_pt, lote_hueco_pt, lote_pagina_pt) if lote
+      generar_lote(reporte, generadas_etiquetas, lote_margen_pt, lote_hueco_pt, lote_pagina_pt, tipo_codigo) if lote
 
       reporte
     end
@@ -88,7 +89,8 @@ module GeneradorEtiquetas
     # Genera el PDF de lote A4 con las etiquetas ya generadas y lo añade al
     # reporte como un resultado más (filas: 0). Con cero etiquetas no lo crea.
     def generar_lote(reporte, etiquetas, margen_pt = LoteEtiqueta::MARGEN_PT,
-                   hueco_pt = LoteEtiqueta::HUECO_PT, pagina_pt = nil)
+                   hueco_pt = LoteEtiqueta::HUECO_PT, pagina_pt = nil,
+                   tipo_codigo = LayoutEtiqueta::TIPO_CODE128)
       return if etiquetas.empty?
 
       pagina_pt ||= [LoteEtiqueta::A4_ANCHO_PT, LoteEtiqueta::A4_ALTO_PT]
@@ -109,7 +111,8 @@ module GeneradorEtiquetas
         LoteEtiqueta.generar(etiquetas, ruta_lote,
                              ancho_pagina_pt: ancho_pagina_pt, alto_pagina_pt: alto_pagina_pt,
                              ancho_etiqueta_pt: ancho_pt, alto_etiqueta_pt: alto_pt,
-                             margen_pt: margen_pt, hueco_pt: hueco_pt)
+                             margen_pt: margen_pt, hueco_pt: hueco_pt,
+                             tipo_codigo: tipo_codigo)
         resultado.estado = :lote
       rescue StandardError => e
         resultado.error = mensaje_corto(e)
@@ -117,14 +120,15 @@ module GeneradorEtiquetas
       reporte << resultado
     end
 
-    def generar_pdf(codigo, descripcion, fila)
+    def generar_pdf(codigo, descripcion, fila, tipo_codigo = LayoutEtiqueta::TIPO_CODE128)
       etiqueta = Etiqueta.new(codigo: codigo, descripcion: descripcion, fila: fila)
       ruta_pdf = File.join(salida, nombre_archivo(codigo))
 
       resultado = Resultado.new(fila: fila, codigo: codigo, descripcion: descripcion,
                                 estado: :error, archivo: ruta_pdf)
       begin
-        PdfEtiqueta.generar(etiqueta, ruta_pdf, ancho_pt: ancho_pt, alto_pt: alto_pt)
+        PdfEtiqueta.generar(etiqueta, ruta_pdf, ancho_pt: ancho_pt, alto_pt: alto_pt,
+                            tipo_codigo: tipo_codigo)
         resultado.estado = :generada
       rescue StandardError => e
         resultado.error = mensaje_corto(e)

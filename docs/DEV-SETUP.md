@@ -1,6 +1,6 @@
-# DEV-SETUP.md — Generador de Etiquetas (PernoStock Ltda.)
+# DEV-SETUP.md — PernoLabel (Etiquetas Pernostock)
 
-Guía para reproducir el entorno de desarrollo y ejecutar el Generador de Etiquetas
+Guía para reproducir el entorno de desarrollo y ejecutar PernoLabel
 en el PC actual (Linux con X11), usando **mise** para la versión de Ruby.
 
 > Software histórico recuperado de material de trabajo de **PernoStock Ltda.**
@@ -52,9 +52,9 @@ bundle install        # instala las gems en la Ruby de mise
 mise exec -- bundle exec ruby bin/main.rb
 
 # CLI portátil (100×50 mm por defecto; salida en ./salida)
-mise exec -- bundle exec ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
-mise exec -- bundle exec ruby bin/etiquetas_cli data/demo/codigos_demo.csv --hoja 0
-mise exec -- bundle exec ruby bin/etiquetas_cli --help
+mise exec -- bundle exec ruby bin/pernolabel data/demo/codigos_demo.xlsx
+mise exec -- bundle exec ruby bin/pernolabel data/demo/codigos_demo.csv --hoja 0
+mise exec -- bundle exec ruby bin/pernolabel --help
 
 # Sonda headful de la GUI (no muestra la ventana; valida el flujo completo,
 # incluida la fila/hoja del lote A4 y su vista previa offscreen).
@@ -83,7 +83,7 @@ ejercita encabezado, duplicados y código no imprimible.
 
 ```bash
 mise exec -- ruby -c bin/main.rb
-mise exec -- ruby -c bin/etiquetas_cli
+mise exec -- ruby -c bin/pernolabel
 for f in lib/generador_etiquetas.rb lib/generador_etiquetas/*.rb lib/gui/*.rb; do
   mise exec -- ruby -c "$f" >/dev/null || echo "FALLA: $f"
 done

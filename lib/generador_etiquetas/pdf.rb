@@ -4,7 +4,8 @@ module GeneradorEtiquetas
   # Escritura de una etiqueta a PDF (Prawn).
   # Convierte el Layout (coordenadas top-down) a coordenadas Prawn (bottom-up).
   class PdfEtiqueta
-    def self.generar(etiqueta, ruta, ancho_pt:, alto_pt:, escala_descripcion: 1.0)
+    def self.generar(etiqueta, ruta, ancho_pt:, alto_pt:, escala_descripcion: 1.0,
+                   tipo_codigo: LayoutEtiqueta::TIPO_CODE128)
       Prawn::Document.generate(
         ruta,
         page_layout: :portrait,
@@ -13,11 +14,12 @@ module GeneradorEtiquetas
         info: {
           Title: "Etiqueta #{etiqueta.codigo}",
           Subject: etiqueta.descripcion,
-          Author: "GeneradorEtiquetas #{VERSION}",
+          Author: 'PernoLabel',
           Creator: 'Prawn'
         }
       ) do |pdf|
-        layout = LayoutEtiqueta.calcular(etiqueta, ancho_pt: ancho_pt, alto_pt: alto_pt)
+        layout = LayoutEtiqueta.calcular(etiqueta, ancho_pt: ancho_pt, alto_pt: alto_pt,
+                                         tipo_codigo: tipo_codigo)
         dibujador = DibujadorPdf.new(pdf, alto_pagina: alto_pt)
         DibujoEtiqueta.dibujar(dibujador, layout)
       end

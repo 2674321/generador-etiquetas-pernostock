@@ -2,6 +2,8 @@ require 'prawn' (PDF)
 require 'barby' (generador codigo de barras)
 require 'barby/barcode/code_128' (solo se usa su #encoding: los módulos se dibujan
                                   manualmente, compartidos entre PDF y vista previa)
+require 'rqrcode' (generador de códigos QR, nivel M; matriz #modules compartida
+                   entre PDF y vista previa)
 require 'roo' (lector de xlsx/xlsm/ods)
 require 'roo-xls' (lector de xls)
 require 'fileutils' (creacion de directorios de salida)

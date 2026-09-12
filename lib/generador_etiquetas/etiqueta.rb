@@ -25,5 +25,13 @@ module GeneradorEtiquetas
       # secuencia de módulos (1 = barra) y el ancho final.
       Barby::Code128.new(codigo).encoding
     end
+
+    # Matriz booleana (fila → columna) del QR que codifica el código.
+    # Nivel M (medio); el tamaño del símbolo depende de la longitud.
+    def qr_modules
+      raise ArgumentError, "Código no válido para QR: #{codigo.inspect}" unless codigo_valido?
+
+      RQRCode::QRCode.new(codigo, level: :m).modules
+    end
   end
 end

@@ -55,9 +55,10 @@ module GeneradorEtiquetas
 
     # Genera el PDF del lote. Devuelve [columnas, filas, hojas]. Con etiquetas
     # vacías genera una hoja A4 limpia (útil para calibración/corte).
-    def generar(etiquetas, ruta, ancho_pagina_pt: A4_ANCHO_PT, alto_pagina_pt: A4_ALTO_PT,
-                ancho_etiqueta_pt:, alto_etiqueta_pt:,
-                margen_pt: MARGEN_PT, hueco_pt: HUECO_PT)
+def generar(etiquetas, ruta, ancho_pagina_pt: A4_ANCHO_PT, alto_pagina_pt: A4_ALTO_PT,
+              ancho_etiqueta_pt:, alto_etiqueta_pt:,
+              margen_pt: MARGEN_PT, hueco_pt: HUECO_PT,
+              tipo_codigo: LayoutEtiqueta::TIPO_CODE128)
       columnas, filas, por_hoja = grarilla(
         ancho_pagina_pt: ancho_pagina_pt, alto_pagina_pt: alto_pagina_pt,
         ancho_etiqueta_pt: ancho_etiqueta_pt, alto_etiqueta_pt: alto_etiqueta_pt,
@@ -73,7 +74,8 @@ module GeneradorEtiquetas
 
           layout = LayoutEtiqueta.calcular(etiqueta,
                                            ancho_pt: ancho_etiqueta_pt,
-                                           alto_pt: alto_etiqueta_pt)
+                                           alto_pt: alto_etiqueta_pt,
+                                           tipo_codigo: tipo_codigo)
           origen_x, origen_y = celda(i % por_hoja, columnas,
                                      ancho_etiqueta_pt: ancho_etiqueta_pt,
                                      alto_etiqueta_pt: alto_etiqueta_pt,

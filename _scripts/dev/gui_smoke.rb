@@ -149,6 +149,43 @@ comprobar(hoja_p1.paginas == 2, 'el lote de 8 etiquetas usa 2 páginas')
 oscuros_p2 = oscuros_offscreen(hoja_p2)
 comprobar(oscuros_p2.positive?, "la página 2 del lote dibuja sus etiquetas (#{oscuros_p2} px)")
 
+# 6. Desplegable de tipo de código: QR y ambos llegan a la previa.
+campo = app.instance_variable_get(:@campo_codigo)
+comprobar(campo && campo.active == 0, 'el desplegable de código existe (Code128 por defecto)')
+campo.active = 1
+salida_qr = Dir.mktmpdir('gui_smoke_qr')
+app.instance_variable_get(:@entrada_salida).text = salida_qr
+app.instance_variable_get(:@caso_lote).active = false
+app.send(:generar)
+espera_qr = 0
+pdf_qr = File.join(salida_qr, 'PET-1001.pdf')
+while espera_qr < 30 && !File.exist?(pdf_qr)
+  Gtk.main_iteration_do(false) while Gtk.events_pending?
+  sleep 0.1
+  espera_qr += 1
+end
+comprobar(File.exist?(pdf_qr), 'con QR la GUI genera el PDF de la etiqueta')
+almacen_qr = app.instance_variable_get(:@almacen)
+iter_qr = almacen_qr.iter_first
+app.instance_variable_get(:@vista).selection.select_iter(iter_qr) if iter_qr
+layout_qr = app.instance_variable_get(:@layout_previo)
+comprobar(layout_qr && layout_qr.barras.nil? && !layout_qr.qr.nil?,
+          'con QR seleccionado la previa dibuja el símbolo QR (sin barras)')
+
+layout_ambos = GeneradorEtiquetas::LayoutEtiqueta.calcular(
+  etiqueta,
+  ancho_pt: GeneradorEtiquetas::Dimensiones.pt(100),
+  alto_pt: GeneradorEtiquetas::Dimensiones.pt(50),
+  tipo_codigo: GeneradorEtiquetas::LayoutEtiqueta::TIPO_AMBOS
+)
+imagen_ambos = Cairo::ImageSurface.new(Cairo::FORMAT_RGB24, 300, 180)
+cr_ambos = Cairo::Context.new(imagen_ambos)
+GeneradorEtiquetas::PanelEtiqueta.new(layout_ambos).dibujar(cr_ambos, 300, 180)
+oscuros_ambos = imagen_ambos.data.bytes.count { |b| b.to_i < 120 }
+comprobar(!layout_ambos.barras.nil? && !layout_ambos.qr.nil?,
+          'con ambos la previa dibuja barras + QR')
+comprobar(oscuros_ambos.positive?, "ambos dibuja áreas oscuras (#{oscuros_ambos} píxeles)")
+
 puts
 puts FALLOS.empty? ? 'PRUEBA DE GUI: CORRECTA' : "PRUEBA DE GUI: #{FALLOS.size} FALLOS"
 exit FALLOS.empty? ? 0 : 1

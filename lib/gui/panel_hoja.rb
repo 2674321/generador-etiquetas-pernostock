@@ -16,7 +16,7 @@ module GeneradorEtiquetas
                    ancho_pagina_pt: LoteEtiqueta::A4_ANCHO_PT,
                    alto_pagina_pt: LoteEtiqueta::A4_ALTO_PT,
                    margen_pt: LoteEtiqueta::MARGEN_PT, hueco_pt: LoteEtiqueta::HUECO_PT,
-                   pagina: 0)
+                   pagina: 0, tipo_codigo: LayoutEtiqueta::TIPO_CODE128)
       @etiquetas = etiquetas
       @ancho_etiqueta_pt = ancho_etiqueta_pt
       @alto_etiqueta_pt = alto_etiqueta_pt
@@ -24,6 +24,7 @@ module GeneradorEtiquetas
       @alto_pagina_pt = alto_pagina_pt
       @margen_pt = margen_pt
       @hueco_pt = hueco_pt
+      @tipo_codigo = tipo_codigo
       @columnas, @filas, @por_hoja = LoteEtiqueta.grarilla(
         ancho_pagina_pt: ancho_pagina_pt, alto_pagina_pt: alto_pagina_pt,
         ancho_etiqueta_pt: ancho_etiqueta_pt, alto_etiqueta_pt: alto_etiqueta_pt,
@@ -77,7 +78,8 @@ module GeneradorEtiquetas
       pagina_etiquetas.each_with_index do |etiqueta, i|
         layout = LayoutEtiqueta.calcular(etiqueta,
                                          ancho_pt: @ancho_etiqueta_pt,
-                                         alto_pt: @alto_etiqueta_pt)
+                                         alto_pt: @alto_etiqueta_pt,
+                                         tipo_codigo: @tipo_codigo)
         x, y = LoteEtiqueta.celda(i, @columnas,
                                   ancho_etiqueta_pt: @ancho_etiqueta_pt,
                                   alto_etiqueta_pt: @alto_etiqueta_pt,

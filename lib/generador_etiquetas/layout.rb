@@ -7,16 +7,17 @@ module GeneradorEtiquetas
   #   +------------------------------------+
   #   | descripción (hasta 2 líneas, bold) |
   #   |                                    |
-  #   |       ||||||||||||||||||||          |  <- código de barras Code128
+  #   |       ||||||||||||||||||||          |  <- Code128 (barras) y/o QR
   #   |      PET-1001                      |  <- código legible
   #   +------------------------------------+
   #
-  # El mismo Layout alimenta tanto al generador PDF como a la vista previa,
-  # garantizando que lo que se ve es exactamente lo que se imprime.
+  # El tipo de código (barras Code128, QR o ambos) condiciona la geometría de
+  # la zona central. El mismo Layout alimenta tanto al generador PDF como a la
+  # vista previa, garantizando que lo que se ve es exactamente lo que se imprime.
   Layout = Struct.new(
     :pagina_ancho, :pagina_alto,
     :lineas_desc, :codigo_texto,
-    :barras, :encoding,
+    :barras, :encoding, :qr,
     :padding, :ancho_util,
     :y_desc_inicio, :alto_linea_desc,
     :tamano_desc, :tamano_codigo,
@@ -24,17 +25,31 @@ module GeneradorEtiquetas
     keyword_init: true
   )
 
+  # Geometría de un conjunto de barras Code128.
   Barras = Struct.new(:x, :y, :ancho, :alto, :xdim, :modulos, keyword_init: true)
 
   module LayoutEtiqueta
+    TIPO_CODE128 = :code128
+    TIPO_QR = :qr
+    TIPO_AMBOS = :ambos
+    TIPOS = {
+      'code128' => TIPO_CODE128, 'barras' => TIPO_CODE128,
+      'qr' => TIPO_QR,
+      'ambos' => TIPO_AMBOS
+    }.freeze
+
     HUECO_PT = 5.0
     ANCHO_POR_CARACTER = 0.56
     MIN_ALTO_BARRAS_PT = 18.0
     MIN_XDIM_PT = 0.5
+    # Proporción máxima del ancho útil que ocupa el QR en el modo "ambos".
+    QR_ANCHO_BASE = 0.32
+    GAP_QR_BARRAS_PT = 4.0
 
     module_function
 
-    def calcular(etiqueta, ancho_pt:, alto_pt:)
+    def calcular(etiqueta, ancho_pt:, alto_pt:, tipo_codigo: TIPO_CODE128)
+      tipo = normalizar_tipo(tipo_codigo)
       padding = Dimensiones::PADDING_PT
       ancho_util = ancho_pt - (padding * 2)
 
@@ -54,12 +69,11 @@ module GeneradorEtiquetas
       alto_barras = y_codigo_inicio - HUECO_PT - y_barras
       alto_barras = MIN_ALTO_BARRAS_PT if alto_barras < MIN_ALTO_BARRAS_PT
 
-      # Las barras se centran; módulos en unidades xdim.
-      encoding = etiqueta.code128_encoding
-      modulos = encoding.length
-      xdim = xdim_ajustado(ancho_util, modulos)
-      ancho_barras = modulos * xdim
-      x_barras = padding + ((ancho_util - ancho_barras) / 2.0).round(2)
+      encoding = (tipo == TIPO_QR) ? nil : etiqueta.code128_encoding
+      matriz   = (tipo == TIPO_CODE128) ? nil : etiqueta.qr_modules
+
+      barras, qr = geometria_codigo(tipo, encoding, matriz, ancho_util, padding,
+                                    y_barras, alto_barras)
 
       Layout.new(
         pagina_ancho: ancho_pt,
@@ -67,6 +81,7 @@ module GeneradorEtiquetas
         lineas_desc: lineas,
         codigo_texto: etiqueta.codigo,
         encoding: encoding,
+        qr: qr,
         padding: padding,
         ancho_util: ancho_util,
         y_desc_inicio: y_desc_inicio,
@@ -75,12 +90,53 @@ module GeneradorEtiquetas
         tamano_codigo: tam_codigo,
         y_codigo_inicio: y_codigo_inicio,
         alto_codigo: alto_codigo,
-        barras: Barras.new(
-          x: x_barras, y: y_barras,
-          ancho: ancho_barras, alto: alto_barras,
-          xdim: xdim, modulos: modulos
-        )
+        barras: barras
       )
+    end
+
+    # Normaliza cadena|símbolo → uno de los TIPO_*.
+    def normalizar_tipo(tipo_codigo)
+      clave = tipo_codigo.to_s.downcase
+      TIPOS.fetch(clave) { raise ArgumentError, "Tipo de código no soportado: #{tipo_codigo.inspect}" }
+    end
+
+    # Geometría de la zona central según el tipo:
+    #   code128 → barras centradas a todo el ancho útil; sin QR.
+    #   qr      → símbolo cuadrado centrado; sin barras.
+    #   ambos   → barras a la izquierda (encogidas) + QR cuadrado a la derecha.
+    def geometria_codigo(tipo, encoding, matriz, ancho_util, padding,
+                         y_barras, alto_barras)
+      return [nil, nil] if encoding.nil? && matriz.nil?
+
+      if tipo == TIPO_QR
+        lado = [alto_barras, ancho_util].min
+        return [nil, qr_geometria(matriz, padding + ((ancho_util - lado) / 2.0),
+                                  y_barras, lado)]
+      end
+
+      if tipo == TIPO_AMBOS
+        lado = [alto_barras, ancho_util * QR_ANCHO_BASE].min
+        x_qr = padding + ancho_util - lado
+        return [barras_geometria(encoding, padding, x_qr - GAP_QR_BARRAS_PT - padding,
+                                 y_barras, alto_barras),
+                qr_geometria(matriz, x_qr, y_barras, lado)]
+      end
+
+      barras = barras_geometria(encoding, padding, ancho_util, y_barras, alto_barras)
+      [barras, nil]
+    end
+
+    # Barras Code128 centradas dentro de [x_inicio, x_inicio + ancho_disponible].
+    def barras_geometria(encoding, x_inicio, ancho_disponible, y, alto)
+      modulos = encoding.length
+      xdim = xdim_ajustado(ancho_disponible, modulos)
+      ancho_barras = modulos * xdim
+      x = x_inicio + ((ancho_disponible - ancho_barras) / 2.0).round(2)
+      Barras.new(x: x, y: y, ancho: ancho_barras, alto: alto, xdim: xdim, modulos: modulos)
+    end
+
+    def qr_geometria(matriz, x, y, lado)
+      { x: x.round(2), y: y, lado: lado, modulos: matriz.size, matriz: matriz }
     end
 
     # Ajusta el ancho de módulo para que las barras ocupen el ancho útil.
