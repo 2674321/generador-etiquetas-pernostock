@@ -22,18 +22,22 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
 - **GUI (`bin/main.rb`)** con:
   - Selector de hoja de cálculo, filtro por texto, cantidad máxima, inclusión de
     duplicados y tamaño configurable (mm).
-  - **Panel de resultados**: tabla con estado (generada / duplicada / inválida / error)
-    y **vista previa de la etiqueta seleccionada** (dibujada con Cairo, misma geometría
-    que el PDF).
+  - **Panel de resultados**: tabla con estado (generada / duplicada / inválida /
+    error / **lote**) y **vista previa** de la etiqueta seleccionada o de la
+    **primera hoja del lote** (dibujada con Cairo, misma geometría que el PDF).
   - Acción "Abrir el PDF generado" para cada fila.
 - **CLI portátil (`bin/etiquetas_cli`)** con opciones `--salida`, `--buscar`,
   `--cantidad`, `--hoja N|nombre`, `--listar-hojas`, `--todas`, `--ancho-mm`,
-  `--alto-mm`, `--quiet`, barra de **progreso** en terminal y resumen con tiempo.
+  `--alto-mm`, `--lote`, `--lote-margen-mm`, `--lote-hueco-mm`, `--quiet`,
+  barra de **progreso** en terminal y resumen con tiempo.
 - **PDFs con metadatos** (código/descripción/versión) y **vista previa** en la GUI
   con la misma geometría que se imprime.
 - **Lote A4**: `--lote` (CLI) o casilla **"Lote A4"** (GUI) genera
   `lote_A4.pdf`, una hoja imprimible con todas las etiquetas en cuadrícula
-  (varias páginas si no caben).
+  (varias páginas si no caben). El **margen** (`--lote-margen-mm`) y la
+  **separación** entre etiquetas (`--lote-hueco-mm`) son configurables.
+- **Vista previa de la hoja** del lote en la GUI: al seleccionar la fila "LOTE A4"
+  se dibuja la cuadrícula de la primera página con la misma geometría que el PDF.
 - **Deduplicación** por código (se omite en el PDF; se informa en el reporte),
   **validación Code128** (solo ASCII imprimible), **omisión automática de la cabecera**
   y de **filas vacías** de la hoja, y **selección de hoja** (GUI/CLI).

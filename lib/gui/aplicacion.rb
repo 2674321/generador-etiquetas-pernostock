@@ -4,6 +4,7 @@ require 'gtk3'
 
 require_relative '../generador_etiquetas'
 require_relative 'panel_etiqueta'
+require_relative 'panel_hoja'
 
 module GeneradorEtiquetas
   # Ventana principal con panel de resultados (lista + vista previa).
@@ -293,6 +294,7 @@ module GeneradorEtiquetas
 
     def actualizar_previa
       @layout_previo = nil
+      @hoja_previo = nil
       r = seleccionado
       unless r
         @info_previa.text = 'Selecciona un elemento de la lista para ver la etiqueta.'
@@ -302,7 +304,8 @@ module GeneradorEtiquetas
       end
 
       if r.lote?
-        @info_previa.text = "#{r.codigo} — #{r.descripcion}. Es la cuadrícula A4 de todo el lote."
+        @hoja_previo = construir_panel_hoja
+        @info_previa.text = "#{r.codigo} — #{r.descripcion}. Vista previa de la primera hoja A4."
         @boton_abrir_pdf.sensitive = true
         @dibujo.queue_draw
         return
@@ -326,6 +329,19 @@ module GeneradorEtiquetas
       @dibujo.queue_draw
     end
 
+    def construir_panel_hoja
+      etiquetas = @resultados.select(&:generada?).map do |r|
+        Etiqueta.new(codigo: r.codigo, descripcion: r.descripcion, fila: r.fila)
+      end
+      return nil if etiquetas.empty?
+
+      PanelHoja.new(
+        etiquetas,
+        ancho_etiqueta_pt: Dimensiones.pt(@campo_ancho.value.to_f),
+        alto_etiqueta_pt: Dimensiones.pt(@campo_alto.value.to_f)
+      )
+    end
+
     def dibujar_previa(cr)
       ancho = @dibujo.allocated_width.to_f
       alto = @dibujo.allocated_height.to_f
@@ -334,7 +350,9 @@ module GeneradorEtiquetas
       cr.set_source_rgb(0.24, 0.24, 0.24)
       cr.paint
 
-      if @layout_previo
+      if @hoja_previo
+        @hoja_previo.dibujar(cr, ancho, alto, fondo: :gris)
+      elsif @layout_previo
         PanelEtiqueta.new(@layout_previo).dibujar(cr, ancho, alto, fondo: :blanco)
       else
         cr.select_font_face('Helvetica', Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL)
@@ -347,7 +365,7 @@ module GeneradorEtiquetas
 
     def abrir_pdf_seleccionado
       r = seleccionado
-      return unless r && r.generada? && r.archivo && File.file?(r.archivo)
+      return unless r && (r.generada? || r.lote?) && r.archivo && File.file?(r.archivo)
 
       Process.spawn('xdg-open', r.archivo, out: File::NULL, err: File::NULL)
     end

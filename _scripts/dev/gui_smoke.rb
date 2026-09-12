@@ -78,6 +78,20 @@ app.instance_variable_get(:@vista).selection.select_iter(iter)
 info = app.instance_variable_get(:@info_previa).text
 comprobar(!info.include?('Selecciona un elemento'),
           "actualizar_previa muestra la fila (…#{info[0, 44].inspect}…)")
+comprobar(app.instance_variable_get(:@layout_previo) && app.instance_variable_get(:@hoja_previo).nil?,
+          'una fila normal prepara la etiqueta única (sin hoja)')
+
+# 4b. Seleccionar la fila del lote: la previa pasa a ser la hoja A4.
+iter_lote = nil
+almacen.each { |_m, _p, i| iter_lote = i if i[1] == 'LOTE A4' }
+comprobar(!iter_lote.nil?, 'la fila LOTE A4 existe en el TreeView')
+app.instance_variable_get(:@vista).selection.select_iter(iter_lote) if iter_lote
+comprobar(!app.instance_variable_get(:@info_previa).to_s.include?('Selecciona un elemento'),
+          'actualizar_previa muestra la fila LOTE A4')
+comprobar(!app.instance_variable_get(:@hoja_previo).nil?,
+          'la fila LOTE A4 prepara la vista previa de la hoja')
+comprobar(app.instance_variable_get(:@boton_abrir_pdf).sensitive?,
+          'abrir el PDF del lote queda habilitado')
 
 # 5. Previa offscreen por la misma ruta que 'draw'.
 etiqueta = GeneradorEtiquetas::Etiqueta.new(codigo: 'PET-1001', descripcion: 'BATERIA DEMO 001')
@@ -91,6 +105,15 @@ cr = Cairo::Context.new(imagen)
 GeneradorEtiquetas::PanelEtiqueta.new(layout).dibujar(cr, 300, 180)
 oscuros = imagen.data.bytes.count { |b| b.to_i < 120 }
 comprobar(oscuros.positive?, "la previa dibuja barras/áreas oscuras (#{oscuros} píxeles)")
+
+# 5b. La misma ruta 'draw' aplicada a la hoja A4 del lote (offscreen).
+hoja = app.instance_variable_get(:@hoja_previo)
+imagen_hoja = Cairo::ImageSurface.new(Cairo::FORMAT_RGB24, 595, 842)
+cr_hoja = Cairo::Context.new(imagen_hoja)
+hoja.dibujar(cr_hoja, 595, 842)
+oscuros_hoja = imagen_hoja.data.bytes.count { |b| b.to_i < 120 }
+comprobar(oscuros_hoja.positive?,
+          "la previa de hoja dibuja las barras de la cuadrícula (#{oscuros_hoja} píxeles)")
 
 puts
 puts FALLOS.empty? ? 'PRUEBA DE GUI: CORRECTA' : "PRUEBA DE GUI: #{FALLOS.size} FALLOS"

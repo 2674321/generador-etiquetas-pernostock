@@ -26,8 +26,11 @@ module GeneradorEtiquetas
     #                        tras cada fila (nil/no-op si no se pasa).
     #   lote               → si true, además genera `lote_A4.pdf` con todas las
     #                        generadas en cuadrícula sobre hojas A4.
+    #   lote_margen_pt    → margen de la hoja del lote (pt; defecto LoteEtiqueta::MARGEN_PT).
+    #   lote_hueco_pt     → separación entre celdas del lote (pt; defecto LoteEtiqueta::HUECO_PT).
     def procesar(ruta, filtrar: nil, cantidad: nil, permitir_duplicados: false,
-                 omitir_encabezado: true, hoja: 0, en_progreso: nil, lote: false)
+                 omitir_encabezado: true, hoja: 0, en_progreso: nil, lote: false,
+                 lote_margen_pt: LoteEtiqueta::MARGEN_PT, lote_hueco_pt: LoteEtiqueta::HUECO_PT)
       filas, _omitio_encabezado = Libro.cargar(ruta,
                                                omitir_encabezado: omitir_encabezado,
                                                hoja: hoja)
@@ -73,7 +76,7 @@ module GeneradorEtiquetas
         en_progreso&.call(indice + 1, total)
       end
 
-      generar_lote(reporte, generadas_etiquetas) if lote
+      generar_lote(reporte, generadas_etiquetas, lote_margen_pt, lote_hueco_pt) if lote
 
       reporte
     end
@@ -82,7 +85,8 @@ module GeneradorEtiquetas
 
     # Genera el PDF de lote A4 con las etiquetas ya generadas y lo añade al
     # reporte como un resultado más (filas: 0). Con cero etiquetas no lo crea.
-    def generar_lote(reporte, etiquetas)
+    def generar_lote(reporte, etiquetas, margen_pt = LoteEtiqueta::MARGEN_PT,
+                   hueco_pt = LoteEtiqueta::HUECO_PT)
       return if etiquetas.empty?
 
       ruta_lote = File.join(salida, LoteEtiqueta::NOMBRE_ARCHIVO)
@@ -91,7 +95,8 @@ module GeneradorEtiquetas
                                 estado: :error, archivo: ruta_lote)
       begin
         LoteEtiqueta.generar(etiquetas, ruta_lote,
-                             ancho_etiqueta_pt: ancho_pt, alto_etiqueta_pt: alto_pt)
+                             ancho_etiqueta_pt: ancho_pt, alto_etiqueta_pt: alto_pt,
+                             margen_pt: margen_pt, hueco_pt: hueco_pt)
         resultado.estado = :lote
       rescue StandardError => e
         resultado.error = mensaje_corto(e)

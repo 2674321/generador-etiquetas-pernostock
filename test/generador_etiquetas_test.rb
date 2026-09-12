@@ -153,6 +153,22 @@ module GeneradorEtiquetas
       end
     end
 
+    def test_grarilla_responde_al_margen_y_hueco
+      ancho = GeneradorEtiquetas::Dimensiones.pt(40)
+      alto = GeneradorEtiquetas::Dimensiones.pt(20)
+      base = {
+        ancho_pagina_pt: GeneradorEtiquetas::LoteEtiqueta::A4_ANCHO_PT,
+        alto_pagina_pt: GeneradorEtiquetas::LoteEtiqueta::A4_ALTO_PT,
+        ancho_etiqueta_pt: ancho, alto_etiqueta_pt: alto
+      }
+      cols_m20, = GeneradorEtiquetas::LoteEtiqueta.grarilla(**base, margen_pt: 20)
+      cols_m120, = GeneradorEtiquetas::LoteEtiqueta.grarilla(**base, margen_pt: 120)
+      cols_h5, = GeneradorEtiquetas::LoteEtiqueta.grarilla(**base, hueco_pt: 5)
+      cols_h120, = GeneradorEtiquetas::LoteEtiqueta.grarilla(**base, hueco_pt: 120)
+      assert_operator cols_m20, :>, cols_m120, 'un margen mayor reduce las columnas'
+      assert_operator cols_h5, :>, cols_h120, 'un hueco mayor reduce las columnas'
+    end
+
     def test_generar_lote_a4
       etiquetas = %w[PET-1001 PET-1002 PET-1003 PET-1004 PET-1005].map do |codigo|
         GeneradorEtiquetas::Etiqueta.new(codigo: codigo, descripcion: "DESC #{codigo}")
@@ -191,6 +207,17 @@ module GeneradorEtiquetas
       assert_equal 5, reporte.generadas
       assert_equal 0, reporte.duplicadas
       assert_equal 5, Dir[File.join(@dir, '*.pdf')].size
+    end
+
+    def test_lote_con_margen_personalizado
+      reporte = @maquina.procesar(File.join(ROOT, 'data/demo/codigos_demo.xlsx'),
+                                  lote: true, lote_margen_pt: Dimensiones.pt(10),
+                                  lote_hueco_pt: Dimensiones.pt(3))
+      assert_equal 1, reporte.lotes
+      assert File.file?(File.join(@dir, LoteEtiqueta::NOMBRE_ARCHIVO)),
+             'el lote se crea con margen/hueco a medida'
+      binario = File.binread(File.join(@dir, LoteEtiqueta::NOMBRE_ARCHIVO))
+      assert_match %r{/MediaBox \[\d+ \d+ [0-9.]+\s+[0-9.]+\]}, binario
     end
 
     def test_procesar_problemas

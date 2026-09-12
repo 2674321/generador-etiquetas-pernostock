@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0] - 2026-09-12
+
+### Añadido
+- **Vista previa de la hoja A4** en la GUI: al seleccionar la fila "LOTE A4" el
+  panel muestra la cuadrícula de la **primera página** del lote, dibujando cada
+  etiqueta con la misma composición que el PDF (nuevo `PanelHoja` que reutiliza
+  `LoteEtiqueta.grarilla`/`celda` + `DibujoEtiqueta`). La fila del lote ya podía
+  abrirse con el botón (ahora `abrir_pdf_seleccionado` también la admite).
+- **Margen y hueco del lote configurables**:
+  - CLI: `--lote-margen-mm MM` (defecto 20) y `--lote-hueco-mm MM` (defecto 8).
+  - API: `Maquina#procesar(lote: true, lote_margen_pt: n, lote_hueco_pt: n)`.
+  - La cuadrícula se recalcula en consecuencia (la GUI muestra la misma
+    geometría en la previa).
+- Tests: configurabilidad de `grarilla` (margen/hueco reducen columnas) y
+  `Maquina` con margen/hueco a medida; sonda GUI ampliada a 15 comprobaciones
+  (selección de la fila LOTE, previa de hoja y dibujo offscreen de la cuadrícula).
+
 ## [1.1.0] - 2026-09-12
 
 ### Añadido

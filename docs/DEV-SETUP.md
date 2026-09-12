@@ -56,7 +56,8 @@ mise exec -- bundle exec ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx
 mise exec -- bundle exec ruby bin/etiquetas_cli data/demo/codigos_demo.csv --hoja 0
 mise exec -- bundle exec ruby bin/etiquetas_cli --help
 
-# Sonda headful de la GUI (no muestra la ventana; valida el flujo completo).
+# Sonda headful de la GUI (no muestra la ventana; valida el flujo completo,
+# incluida la fila/hoja del lote A4 y su vista previa offscreen).
 # Solo corre si hay DISPLAY; sin él avisa y salta.
 DISPLAY="${DISPLAY:-}" mise exec -- bundle exec rake gui_smoke
 ```

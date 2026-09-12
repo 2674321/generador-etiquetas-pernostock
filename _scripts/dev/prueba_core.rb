@@ -96,6 +96,10 @@ if File.exist?(ruta_lote)
     codigo_dupla = %w[PET-1001 PET-1002 PET-1003 PET-1004 PET-1005].all? { |c| texto.include?(c) }
     comprobar(codigo_dupla, "la hoja A4 contiene los 5 códigos")
   end
+
+  maquina.procesar(DEMO, lote: true, lote_margen_pt: GeneradorEtiquetas::Dimensiones.pt(10),
+                   lote_hueco_pt: GeneradorEtiquetas::Dimensiones.pt(3))
+  comprobar(File.file?(ruta_lote), "lote con margen/hueco a medida (10 y 3 mm) se regenera")
 end
 
 puts "== Callback de progreso =="

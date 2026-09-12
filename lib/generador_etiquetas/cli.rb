@@ -24,7 +24,8 @@ module GeneradorEtiquetas
         ancho_mm: nil, alto_mm: nil,
         salida: nil, filtrar: nil, cantidad: nil,
         permitir_duplicados: false, quiet: false,
-        hoja: 0, listar_hojas: false, lote: false
+        hoja: 0, listar_hojas: false, lote: false,
+        lote_margen_mm: nil, lote_hueco_mm: nil
       }
       @argv = argv.dup
     end
@@ -60,6 +61,8 @@ module GeneradorEtiquetas
                                  permitir_duplicados: opciones[:permitir_duplicados],
                                  hoja: opciones[:hoja],
                                  lote: opciones[:lote],
+                                 lote_margen_pt: Dimensiones.pt(opciones[:lote_margen_mm]),
+                                 lote_hueco_pt: Dimensiones.pt(opciones[:lote_hueco_mm]),
                                  en_progreso: progreso&.callback)
       progreso&.terminar
       transcurrido = Process.clock_gettime(Process::CLOCK_MONOTONIC) - inicio
@@ -133,6 +136,16 @@ module GeneradorEtiquetas
         opts.on('--lote', 'Además genera lote_A4.pdf con las etiquetas en cuadrícula') do
           opciones[:lote] = true
         end
+
+        opts.on('--lote-margen-mm MM', Float,
+                'Margen de la hoja del lote en mm (defecto 20)') do |v|
+          opciones[:lote_margen_mm] = v
+        end
+
+        opts.on('--lote-hueco-mm MM', Float,
+                'Separación entre etiquetas del lote en mm (defecto 8)') do |v|
+          opciones[:lote_hueco_mm] = v
+        end
         opts.on('--ancho-mm N', Float, "Ancho de etiqueta en mm (por defecto #{Dimensiones::ANCHO_POR_DEFECTO_MM})") do |v|
           opciones[:ancho_mm] = v
         end
@@ -190,6 +203,8 @@ module GeneradorEtiquetas
               --alto-mm N       Alto de etiqueta en mm (por defecto #{Dimensiones::ALTO_POR_DEFECTO_MM})
           -q, --quiet           Solo resumen
               --lote            Además genera lote_A4.pdf (cuadrícula de etiquetas)
+              --lote-margen-mm MM   Margen de la hoja del lote en mm (defecto 20)
+              --lote-hueco-mm MM    Separación entre etiquetas del lote en mm (defecto 8)
           -h, --help            Esta ayuda
 
         Ejemplos:
@@ -198,6 +213,7 @@ module GeneradorEtiquetas
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --listar-hojas
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --hoja Codigos
           ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote
+          ruby bin/etiquetas_cli data/demo/codigos_demo.xlsx --lote --lote-margen-mm 10 --lote-hueco-mm 5
       TXT
     end
   end

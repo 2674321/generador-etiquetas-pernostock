@@ -24,9 +24,10 @@ Generador de Etiquetas
 
 ## Versión
 
-`v1.1.0` (reconstrucción con correcciones + selección de hoja + CSV + progreso y
-metadatos + **lote A4 imprimible** + GUI verificada headful). Histórico original:
-versión no determinada (variantes `main`, GTK, CLI, simple, Shoes → conservadas en
+`v1.2.0` (reconstrucción con correcciones + selección de hoja + CSV + progreso y
+metadatos + lote A4 imprimible con margen/hueco configurables + vista previa de
+la cuadrícula en la GUI + GUI verificada headful). Histórico original: versión no
+determinada (variantes `main`, GTK, CLI, simple, Shoes → conservadas en
 `lib/legacy/`).
 
 ## Runtime
