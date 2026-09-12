@@ -96,6 +96,10 @@ module GeneradorEtiquetas
         end
         opts.on('-q', '--quiet', 'Solo resumen') { opciones[:quiet] = true }
         opts.on('-h', '--help', 'Ayuda') { @help = true }
+        opts.on('-V', '--version', 'Muestra la versión y termina') do
+          puts "GeneradorEtiquetas #{VERSION}"
+          exit 0
+        end
       end
 
       resto = parser.parse(@argv)
