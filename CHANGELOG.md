@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.2] - 2026-09-12
+
+### Añadido
+- **Metadatos en cada PDF**: Title = código, Subject = descripción, Author =
+  `GeneradorEtiquetas <versión>` (comprobados con `pdfinfo` en la prueba del core).
+- **Barra de progreso** en CLI (solo cuando stdout es una TTY; `tty-progressbar`
+  opcional) y **`Gtk::ProgressBar`** en la GUI durante la generación, vía el nuevo
+  callback `en_progreso:` de `Maquina#procesar` (también útil para otras UIs).
+- Resumen del CLI: indica el **tiempo transcurrido** (`En 0.42 s`).
+
+### Otro
+- Se elimina la constante muerta `Dimensiones::TAMANO_ETIQUETA_NUM_PT`.
+
 ## [1.0.1] - 2026-09-12
 
 ### Añadido

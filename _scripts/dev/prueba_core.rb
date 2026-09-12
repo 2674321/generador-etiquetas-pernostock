@@ -70,6 +70,21 @@ else
   puts "  (pdftotext no disponible; se omite esta comprobación)"
 end
 
+puts "== Si hay pdfinfo, se comprueban los metadatos =="
+if system("which", "pdfinfo", out: File::NULL, err: File::NULL)
+  meta = `pdfinfo #{File.join(SALIDA, 'PET-1001.pdf')}`
+  comprobar(meta.include?("Title:           Etiqueta PET-1001"), "Title en metadatos")
+  comprobar(meta.include?("BATERIA DEMO 001"), "Subject (descripción) en metadatos")
+  comprobar(meta.include?("GeneradorEtiquetas"), "Author con la versión")
+else
+  puts "  (pdfinfo no disponible; se omite esta comprobación)"
+end
+
+puts "== Callback de progreso =="
+avances = []
+maquina.procesar(DEMO, en_progreso: ->(hechas, total) { avances << [hechas, total] })
+comprobar(avances.last == [5, 5], "se avisa de 5/5 (== #{avances.last.inspect})")
+
 if File.exist?(PROBLEMAS)
   puts "== Caminos negativos (fixture con problemas) =="
   r2 = maquina.procesar(PROBLEMAS)

@@ -9,7 +9,13 @@ module GeneradorEtiquetas
         ruta,
         page_layout: :portrait,
         page_size: [ancho_pt, alto_pt],
-        margin: 0
+        margin: 0,
+        info: {
+          Title: "Etiqueta #{etiqueta.codigo}",
+          Subject: etiqueta.descripcion,
+          Author: "GeneradorEtiquetas #{VERSION}",
+          Creator: 'Prawn'
+        }
       ) do |pdf|
         layout = LayoutEtiqueta.calcular(etiqueta, ancho_pt: ancho_pt, alto_pt: alto_pt)
         dibujador = DibujadorPdf.new(pdf, alto_pagina: alto_pt)

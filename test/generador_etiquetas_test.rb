@@ -161,5 +161,13 @@ module GeneradorEtiquetas
       assert_equal 1, reporte.generadas
       assert(File.file?(File.join(@dir, 'P2-0001.pdf')))
     end
+
+    def test_en_progreso_avisa_de_cada_fila
+      avances = []
+      @maquina.procesar(File.join(ROOT, 'data/demo/codigos_demo.xlsx'),
+                        en_progreso: ->(hechas, total) { avances << [hechas, total] })
+      assert_equal [1, 2, 3, 4, 5], avances.map(&:first)
+      assert_equal [5, 5], avances.last
+    end
   end
 end

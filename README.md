@@ -28,7 +28,9 @@ barras (Code128) en PDF (100×50 mm), leyendo los códigos desde una hoja de cá
   - Acción "Abrir el PDF generado" para cada fila.
 - **CLI portátil (`bin/etiquetas_cli`)** con opciones `--salida`, `--buscar`,
   `--cantidad`, `--hoja N|nombre`, `--listar-hojas`, `--todas`, `--ancho-mm`,
-  `--alto-mm`, `--quiet`.
+  `--alto-mm`, `--quiet`, barra de **progreso** en terminal y resumen con tiempo.
+- **PDFs con metadatos** (código/descripción/versión) y **vista previa** en la GUI
+  con la misma geometría que se imprime.
 - **Deduplicación** por código (se omite en el PDF; se informa en el reporte),
   **validación Code128** (solo ASCII imprimible), **omisión automática de la cabecera**
   y de **filas vacías** de la hoja, y **selección de hoja** (GUI/CLI).

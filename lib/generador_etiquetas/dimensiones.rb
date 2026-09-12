@@ -16,7 +16,6 @@ module GeneradorEtiquetas
     # Texto de descripción (arriba) y código legible (bajo las barras).
     TAMANO_DESCRIPCION_PT = 10.0
     TAMANO_CODIGO_PT      = 9.0
-    TAMANO_ETIQUETA_NUM_PT = 7.0
 
     def self.pt(milimetros)
       milimetros.to_f * MM_A_PT

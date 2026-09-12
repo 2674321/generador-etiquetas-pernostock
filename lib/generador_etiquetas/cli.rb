@@ -52,13 +52,18 @@ module GeneradorEtiquetas
                             ancho_mm: opciones[:ancho_mm] || Dimensiones::ANCHO_POR_DEFECTO_MM,
                             alto_mm:  opciones[:alto_mm]  || Dimensiones::ALTO_POR_DEFECTO_MM)
 
+      inicio = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      progreso = crear_progreso
       reporte = maquina.procesar(archivo,
                                  filtrar: opciones[:filtrar],
                                  cantidad: opciones[:cantidad],
                                  permitir_duplicados: opciones[:permitir_duplicados],
-                                 hoja: opciones[:hoja])
+                                 hoja: opciones[:hoja],
+                                 en_progreso: progreso&.callback)
+      progreso&.terminar
+      transcurrido = Process.clock_gettime(Process::CLOCK_MONOTONIC) - inicio
 
-      mostrar(reporte)
+      mostrar(reporte, transcurrido: transcurrido)
       0
     rescue ArgumentError => e
       warn "Error: #{e.message}"
@@ -66,6 +71,42 @@ module GeneradorEtiquetas
     end
 
     private
+
+    # Progreso TTY opcional. Sin terminal (pipas, CI), en modo silencioso o
+    # sin la gema, crear_progreso devuelve nil y el CLI se comporta como antes.
+    def crear_progreso
+      return nil if opciones[:quiet] || !$stdout.tty?
+
+      require 'tty-progressbar'
+      ProgressoBarra.new
+    rescue LoadError
+      nil
+    end
+
+    # Reúne el bar (creado a la primera llamada, cuando ya se conoce el total),
+    # su callback para la máquina y el cierre.
+    class ProgressoBarra
+      def initialize
+        @ultimo = 0
+        @barra = nil
+      end
+
+      def callback
+        proc do |hechas, total|
+          @barra ||= TTY::ProgressBar.new(
+            'Generando :bar :percent (:current/:total)',
+            total: total, output: $stdout
+          )
+          avance = hechas - @ultimo
+          @ultimo = hechas
+          @barra.advance(avance)
+        end
+      end
+
+      def terminar
+        @barra&.finish
+      end
+    end
 
     def parsear!
       parser = OptionParser.new do |opts|
@@ -109,7 +150,7 @@ module GeneradorEtiquetas
       raise ArgumentError, e.message
     end
 
-    def mostrar(reporte)
+    def mostrar(reporte, transcurrido: nil)
       unless opciones[:quiet]
         orden = { generada: 'PDF', duplicada: 'OMIT', invalida: 'INVÁLIDO', error: 'ERROR' }
         reporte.resultados.each do |r|
@@ -123,6 +164,7 @@ module GeneradorEtiquetas
 
       puts
       puts reporte.to_s
+      puts format('En %.2f s', transcurrido) if !opciones[:quiet] && transcurrido
     end
 
     def uso

@@ -15,15 +15,17 @@ module GeneradorEtiquetas
     end
 
     # procesar(ruta, filtrar: nil, cantidad: nil, permitir_duplicados: false,
-    #          omitir_encabezado: true, hoja: 0)
-    #   ruta               → XLSX/XLS/ODS con códigos en columna A y descripción en B.
+    #          omitir_encabezado: true, hoja: 0, en_progreso: nil)
+    #   ruta               → XLSX/XLS/ODS/CSV con códigos en columna A y descripción en B.
     #   filtrar            → texto; solo se procesan códigos/descripciones que lo contengan.
     #   cantidad           → máx. etiquetas a generar (nil = todas).
     #   permitir_duplicados→ si false, los códigos repetidos se omiten y se reportan.
     #   omitir_encabezado  → si true, salta una primera fila tipo "Código/ETIQUETA/SKU".
     #   hoja               → índice (0, 1, …) o nombre de la hoja a leer.
+    #   en_progreso        → callback para UI; se invoca como at(hechas, total)
+    #                        tras cada fila (nil/no-op si no se pasa).
     def procesar(ruta, filtrar: nil, cantidad: nil, permitir_duplicados: false,
-                 omitir_encabezado: true, hoja: 0)
+                 omitir_encabezado: true, hoja: 0, en_progreso: nil)
       filas, _omitio_encabezado = Libro.cargar(ruta,
                                                omitir_encabezado: omitir_encabezado,
                                                hoja: hoja)
@@ -32,8 +34,9 @@ module GeneradorEtiquetas
       reporte = Reporte.new(directorio: salida, ancho_pt: ancho_pt, alto_pt: alto_pt)
       vistos = {}
       generadas = 0
+      total = filas.size
 
-      filas.each do |fila|
+      filas.each_with_index do |fila, indice|
         codigo = fila.codigo
         descripcion = fila.descripcion
 
@@ -45,11 +48,13 @@ module GeneradorEtiquetas
 
         unless Etiqueta.new(codigo: codigo, descripcion: descripcion).codigo_valido?
           reporte << resultado.tap { |r| r.estado = :invalida }
+          en_progreso&.call(indice + 1, total)
           next
         end
 
         if !permitir_duplicados && vistos[codigo]
           reporte << resultado.tap { |r| r.estado = :duplicada }
+          en_progreso&.call(indice + 1, total)
           next
         end
 
@@ -59,6 +64,7 @@ module GeneradorEtiquetas
         generadas += 1
         ruta_pdf = generar_pdf(codigo, descripcion, fila.fila)
         reporte << ruta_pdf
+        en_progreso&.call(indice + 1, total)
       end
 
       reporte

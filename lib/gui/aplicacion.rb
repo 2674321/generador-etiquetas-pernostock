@@ -51,6 +51,9 @@ module GeneradorEtiquetas
 
       @barra_estado = Gtk::Label.new('Listo. Selecciona un archivo y pulsa Generar.')
       @barra_estado.xalign = 0.0
+      @barra_progreso = Gtk::ProgressBar.new
+      @barra_progreso.no_show_all = true
+      caja_principal.pack_start(@barra_progreso, expand: false)
       caja_principal.pack_start(@barra_estado, expand: false)
 
       ventana.add(caja_principal)
@@ -208,6 +211,8 @@ module GeneradorEtiquetas
 
       @boton_generar.sensitive = false
       @barra_estado.text = 'Generando…'
+      @barra_progreso.show_now
+      @barra_progreso.fraction = 0.0
 
       hoja = @selector_hoja.active
       hoja = 0 if hoja.nil? || hoja.negative?
@@ -219,7 +224,11 @@ module GeneradorEtiquetas
             filtrar: texto_vacio(@campo_filtrar.text),
             cantidad: @campo_cantidad.value.to_i.zero? ? nil : @campo_cantidad.value.to_i,
             permitir_duplicados: @caso_todas.active?,
-            hoja: hoja
+            hoja: hoja,
+            en_progreso: proc do |hechas, total|
+              fraccion = total.zero? ? 0.0 : hechas.to_f / total
+              GLib::Idle.add { @barra_progreso.fraction = fraccion; false }
+            end
           )
         rescue StandardError => e
           e
@@ -230,6 +239,7 @@ module GeneradorEtiquetas
 
     def aplicar_resultado(resultado)
       @boton_generar.sensitive = true
+      @barra_progreso.hide
       if resultado.is_a?(StandardError)
         @barra_estado.text = 'Error'
         aviso("Error al generar:\n#{resultado.message}")
