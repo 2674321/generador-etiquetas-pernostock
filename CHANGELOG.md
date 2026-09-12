@@ -12,6 +12,9 @@
 - **Rakefile** con tareas `test`, `cli`, `gui` (por defecto `test`).
 - Fixture `data/demo/codigos_dos_hojas.xlsx` (hojas Principal/Secundaria + fila vacía)
   y ampliación de `_scripts/dev/prueba_core.rb`.
+- **Suite de tests minitest** `test/generador_etiquetas_test.rb` (22 casos:
+  validación/Code128, dimensiones, composición, lectura y máquina completa);
+  `rake test` ejecuta suite + smoke test.
 
 ## [1.0.0] - 2026-09-12
 

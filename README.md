@@ -115,11 +115,15 @@ Flujo:
 ## Prueba del core (headless)
 
 ```bash
+rake test            # suite minitest + smoke test del core
 ruby _scripts/dev/prueba_core.rb
 ```
 
-Genera los 5 PDFs demo, comprueba que son 100×50 mm, verifica el contenido textual de
-cada PDF y ejercita los caminos negativos (encabezado, duplicados y código no imprimible).
+La suite `test/generador_etiquetas_test.rb` (minitest) cubre validación y Code128,
+dimensiones, composición, lectura (XLSX/CSV/hojas/filas vacías) y la máquina completa.
+El smoke test genera los 5 PDFs demo, comprueba que son 100×50 mm, verifica el contenido
+textual de cada PDF y ejercita los caminos negativos (encabezado, duplicados, código no
+imprimible, selección de hoja y CSV).
 
 ## Datos de ejemplo
 

@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-desc 'Prueba headless del core (usa fixtures demo ficticios)'
+desc 'Prueba headless del core (fixtures demo ficticios)'
 task :test do
+  ruby 'test/generador_etiquetas_test.rb'
   ruby '_scripts/dev/prueba_core.rb'
 end
 
