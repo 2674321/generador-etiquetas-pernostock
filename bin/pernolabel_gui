@@ -1,16 +1,30 @@
 #!/bin/sh
-# required/frozen: sh portable.
-# Iniciador de la GUI de PernoLabel para escritorio: abre la ventana sin
-# terminal ni contacto con el código fuente. Portable respecto al repo.
+# Iniciador de escritorio de PernoLabel: abre la ventana sin terminal ni
+# contacto con el código. Portable respecto al repo (resuelve ruby con gems).
+#
+# En un entorno de menú de aplicaciones el PATH es mínimo (/usr/bin), donde
+# puede haber un Ruby del sistema SIN gtk3/cairo. Por eso se prefiere el shim
+# de mise (que sí completa el entorno con las gems) y solo se usa 'ruby' de
+# PATH si carga gtk3 con éxito.
 DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 
-RUBY="$(command -v ruby 2>/dev/null)"
-if [ -z "$RUBY" ] && [ -x "$HOME/.local/share/mise/shims/ruby" ]; then
-  RUBY="$HOME/.local/share/mise/shims/ruby"
-fi
+encontrar_ruby() {
+  if [ -x "$HOME/.local/share/mise/shims/ruby" ]; then
+    printf '%s\n' "$HOME/.local/share/mise/shims/ruby"
+    return 0
+  fi
+  if RUBY="$(command -v ruby 2>/dev/null)" && [ -n "$RUBY" ]; then
+    if "$RUBY" -e 'require "gtk3"; require "cairo"' >/dev/null 2>&1; then
+      printf '%s\n' "$RUBY"
+      return 0
+    fi
+  fi
+  return 1
+}
 
+RUBY="$(encontrar_ruby)"
 if [ -z "$RUBY" ]; then
-  echo "PernoLabel: no se encontró Ruby en el entorno (instala con mise)." >&2
+  echo "PernoLabel: no se encontró un Ruby con gtk3/cairo." >&2
   exit 1
 fi
 

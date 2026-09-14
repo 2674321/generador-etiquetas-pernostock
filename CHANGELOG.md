@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.1] - 2026-09-12
+
+### Corregido
+- **Iniciador de escritorio al abrir desde el menú de Linux**: el wrapper
+  elegía el `ruby` de `PATH` (podía ser el del sistema, `/usr/bin/ruby`, sin
+  las gems gtk3/cairo) y la app moría en silencio. Ahora `bin/pernolabel_gui`
+  prefiere el shim de mise si existe y solo usa el `ruby` de `PATH` cuando
+  carga gtk3/cairo con éxito. Verificado en entorno de menú simulado
+  (`env -i PATH=/usr/bin:/bin` → ventana 1668×640).
+
 ## [1.5.0] - 2026-09-12
 
 ### Añadido
