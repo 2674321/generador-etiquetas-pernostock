@@ -43,6 +43,7 @@ module GeneradorEtiquetas
       @ventana.set_title('PernoLabel — Etiquetas Pernostock')
       @ventana.set_default_size(980, 640)
       @ventana.border_width = 10
+      poner_icono_ventana
 
       caja_principal = Gtk::Box.new(:vertical, 8)
       caja_principal.pack_start(construir_barra_archivo, expand: false)
@@ -62,6 +63,17 @@ module GeneradorEtiquetas
       caja_principal.pack_start(@barra_estado, expand: false)
 
       ventana.add(caja_principal)
+    end
+
+    # Icono de la aplicación para la ventana/taskbar (se resuelve frente al repo).
+    # Si no está el PNG (p. ej. checkout sin icons) la ventana usa el default.
+    def poner_icono_ventana
+      ruta = File.expand_path('../../packaging/icons/pernolabel-256.png', __dir__)
+      return unless File.file?(ruta)
+
+      @ventana.icon = GdkPixbuf::Pixbuf.new(file: ruta)
+    rescue StandardError
+      nil
     end
 
     def construir_barra_archivo

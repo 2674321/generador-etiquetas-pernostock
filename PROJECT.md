@@ -20,16 +20,18 @@ conserva el espacio de nombres histórico `GeneradorEtiquetas`.
 - Preparación DEV para ejecutarlo en el PC actual: **completa**.
 - **Reconstrucción del sistema (2026-09-12):** núcleo portátil sin GUI, etiquetas
   corregidas a tamaño real (100×50 mm), GUI con **panel de resultados + vista previa**,
-  códigos **Code128 / QR / ambos** y **rebranding de producto a PernoLabel**.
+  códigos **Code128 / QR / ambos**, **rebranding de producto a PernoLabel** e
+  **iniciador de escritorio** (`.desktop` + icono Cairo, `rake desktop`).
 - Core funcional (hoja de cálculo → Code128/QR → PDF) verificado sin GUI con
   datos demo ficticios (`_scripts/dev/prueba_core.rb`).
 
 ## Versión
 
-`v1.4.0` (reconstrucción con correcciones + selección de hoja + CSV + progreso y
-metadatos + lote configurable con vista previa paginada + **Code128/QR/ambos** +
-**rebranding PernoLabel** + GUI verificada headful). Histórico original: versión no
-determinada (variantes `main`, GTK, CLI, simple, Shoes → conservadas en `lib/legacy/`).
+`v1.5.0` (reconstrucción con correcciones + selección de hoja + CSV + progreso y
+metadatos + lote configurable con vista previa paginada + Code128/QR/ambos +
+rebranding PernoLabel + **iniciador de escritorio con icono** + GUI verificada
+headful). Histórico original: versión no determinada (variantes `main`, GTK, CLI,
+simple, Shoes → conservadas en `lib/legacy/`).
 
 ## Runtime
 

@@ -1,0 +1,17 @@
+#!/bin/sh
+# required/frozen: sh portable.
+# Iniciador de la GUI de PernoLabel para escritorio: abre la ventana sin
+# terminal ni contacto con el código fuente. Portable respecto al repo.
+DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+
+RUBY="$(command -v ruby 2>/dev/null)"
+if [ -z "$RUBY" ] && [ -x "$HOME/.local/share/mise/shims/ruby" ]; then
+  RUBY="$HOME/.local/share/mise/shims/ruby"
+fi
+
+if [ -z "$RUBY" ]; then
+  echo "PernoLabel: no se encontró Ruby en el entorno (instala con mise)." >&2
+  exit 1
+fi
+
+exec "$RUBY" "$DIR/bin/main.rb" "$@"

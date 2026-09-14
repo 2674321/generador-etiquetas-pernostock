@@ -35,6 +35,9 @@ los códigos desde una hoja de cálculo (Excel/ODS/CSV).
   `--alto-mm`, `--codigo code128|qr|ambos`, `--lote`, `--lote-margen-mm`,
   `--lote-hueco-mm`, `--lote-pagina ANCHOxALTO`, `--quiet`, barra de **progreso**
   en terminal y resumen con tiempo.
+- **Iniciador de escritorio**: `bin/pernolabel_gui` abre la GUI sin terminal ni
+  código; `rake desktop` instala la entrada **PernoLabel** (con icono) en el
+  menú de aplicaciones. Se lanza con `gtk-launch PernoLabel` o desde el menú.
 - **PDFs con metadatos** (código/descripción, autor `PernoLabel`) y **vista previa**
   en la GUI con la misma geometría que se imprime.
 - **Lote**: `--lote` (CLI) o casilla **"Lote A4"** (GUI) genera `lote_A4.pdf`,
@@ -64,10 +67,11 @@ los códigos desde una hoja de cálculo (Excel/ODS/CSV).
 ## Estructura
 
 ```
-├── Rakefile                     ← rake test / cli / gui
+├── Rakefile                     ← rake test / cli / gui / desktop
 ├── bin/
 │   ├── main.rb                    ← GUI (requiere display X11)
 │   ├── pernolabel                 ← CLI portátil
+│   ├── pernolabel_gui             ← iniciador de escritorio (sin terminal)
 │   └── etiquetas_cli              ← alias histórico del CLI
 ├── lib/
 │   ├── generador_etiquetas.rb     ← require central del núcleo
@@ -86,6 +90,9 @@ los códigos desde una hoja de cálculo (Excel/ODS/CSV).
 │   │   ├── panel_etiqueta.rb      ← destino de vista previa (Cairo)
 │   │   └── panel_hoja.rb          ← vista previa del lote (paginada)
 │   └── legacy/                    ← variantes históricas conservadas
+├── packaging/
+│   ├── PernoLabel.desktop.in      ← plantilla del lanzador (.desktop)
+│   └── icons/                     ← icono de la app (PNG generados con Cairo)
 ├── data/demo/                     ← fixtures ficticios (no versionados)
 └── docs/
     ├── gems.txt                   ← dependencias y requires
@@ -120,7 +127,10 @@ un resumen al final. `bin/etiquetas_cli` sigue disponible como alias del CLI.
 ## Ejecución (GUI)
 
 ```bash
-ruby bin/main.rb   # GUI GTK (requiere display X11)
+ruby bin/main.rb             # GUI GTK (requiere display X11)
+bin/pernolabel_gui           # igual, vía el iniciador de escritorio
+rake desktop                 # instala la entrada PernoLabel en el menú
+gtk-launch PernoLabel        # abre la app desde el menú de aplicaciones
 ```
 
 Flujo:

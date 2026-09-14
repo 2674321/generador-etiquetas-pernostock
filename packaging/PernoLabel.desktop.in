@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=PernoLabel
+GenericName=Label generator
+GenericName[es]=Generador de etiquetas
+Comment=Etiquetas de producto con Code128/QR en PDF
+Exec=__RUTA__/bin/pernolabel_gui
+Icon=pernolabel
+Terminal=false
+Categories=Office;
+Keywords=etiquetas;codigo;barras;qr;label;etiqueta;
+StartupNotify=true
+StartupWMClass=main.rb

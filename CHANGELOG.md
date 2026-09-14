@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.5.0] - 2026-09-12
+
+### Añadido
+- **Iniciador de escritorio**: `bin/pernolabel_gui` (abre la GUI sin terminal ni
+  código) y `packaging/PernoLabel.desktop.in` con plantilla para
+  `rake desktop`, que instala `.desktop` en `~/.local/share/applications` y el
+  icono en `hicolor/{48,64,128,256,512}/apps/pernolabel.png`. Arranca con
+  `gtk-launch PernoLabel`.
+- **Icono de aplicación** generado con Cairo (`_scripts/dev/generar_icono.rb`,
+  tarea `rake icono`): "lente" verde con placa blanca que muestra un código de
+  barras estilizado y el **QR real del texto PERNOLABEL** (matriz `rqrcode`).
+- **Icono en la ventana GTK**: `Gtk::Window#icon` con `packaging/icons/...`
+  (taskbar/dock), resuelto contra el repo y tolerante si no existe el PNG.
+- Tests: `TestIcono` (el generador produce tamaños 48/128/256 de PDF→PNG válido).
+- Docs actualizadas: README (estructura, `rake desktop`, ejecución GUI con el
+  iniciador), PROJECT, DEV-SETUP (instalación del lanzador). Versión `1.5.0`.
+
 ## [1.4.0] - 2026-09-12
 
 ### Añadido

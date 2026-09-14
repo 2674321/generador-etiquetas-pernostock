@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'minitest/autorun'
+require 'rbconfig'
 
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 require 'generador_etiquetas'
@@ -410,6 +411,20 @@ module GeneradorEtiquetas
       [0, 1].each do |pagina|
         hoja = panel(etiquetas(8), pagina: pagina)
         assert_operator oscuros(hoja), :>, 0, "la página #{pagina + 1} dibuja contenido"
+      end
+    end
+  end
+
+  class TestIcono < Minitest::Test
+    def test_generar_icono_crea_tamanos
+      Dir.mktmpdir do |dir|
+        script = File.expand_path('../_scripts/dev/generar_icono.rb', __dir__)
+        assert system(RbConfig.ruby, script, dir), 'el generador de icono termina sin error'
+        [48, 128, 256].each do |tamano|
+          ruta = File.join(dir, "pernolabel-#{tamano}.png")
+          assert File.file?(ruta), "se crea pernolabel-#{tamano}.png"
+          assert_equal(("\x89PNG".b), File.binread(ruta)[0, 4], 'archivo PNG válido')
+        end
       end
     end
   end

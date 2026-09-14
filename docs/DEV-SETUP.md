@@ -62,6 +62,20 @@ mise exec -- bundle exec ruby bin/pernolabel --help
 DISPLAY="${DISPLAY:-}" mise exec -- bundle exec rake gui_smoke
 ```
 
+## Iniciador de escritorio (menú de aplicaciones)
+
+Regenera el icono (Cairo) e instala la entrada `.desktop` + los PNG en
+`hicolor/{48,64,128,256,512}/apps` de `~/.local/share`:
+
+```bash
+mise exec -- bundle exec rake desktop
+gtk-launch PernoLabel    # lanza la GUI desde el menú, sin terminal
+```
+
+- `bin/pernolabel_gui` es el ejecutable del lanzador (resuelve `ruby` del
+  entorno y abre `bin/main.rb`).
+- `rake icono` solo regenera `packaging/icons/pernolabel-*.png`.
+
 > Requiere un entorno gráfico solo para la GUI. La CLI y el núcleo son headless.
 
 ## Prueba básica (sin datos reales)
