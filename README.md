@@ -1,8 +1,13 @@
 # PernoLabel — Etiquetas Pernostock
 
+[![CI](https://github.com/2674321/generador-etiquetas-pernostock/actions/workflows/ci.yml/badge.svg)](https://github.com/2674321/generador-etiquetas-pernostock/actions/workflows/ci.yml)
+[![Licencia](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
+[![Ruby](https://img.shields.io/badge/Ruby-3.2-red.svg)](.ruby-version)
+
 Aplicación de escritorio en **Ruby + GTK3** para generar etiquetas de producto con
 **código de barras Code128, QR o ambos** en PDF (100×50 mm por defecto), leyendo
-los códigos desde una hoja de cálculo (Excel/ODS/CSV).
+los códigos desde una hoja de cálculo (Excel/ODS/CSV) con **detección automática
+de columnas**.
 
 > **⚠️ Software recuperado de material histórico de trabajo** (enero–febrero 2024).
 > Fue desarrollado como parte de un proyecto de formación (Técnico en Programación)
@@ -11,11 +16,28 @@ los códigos desde una hoja de cálculo (Excel/ODS/CSV).
 > etiquetas a tamaño real corregidas, códigos Code128/QR y un panel de resultados en
 > la GUI.
 
+## Captura
+
+![GUI de PernoLabel con resultados y vista previa](docs/screenshot-gui.png)
+
+Etiquetas resultantes (Code128 y QR, 100×50 mm):
+
+| Code128 | QR |
+|---|---|
+| ![Etiqueta Code128](docs/etiqueta-code128.png) | ![Etiqueta QR](docs/etiqueta-qr.png) |
+
 ## Características
 
 - **Núcleo independiente de la GUI** (`lib/generador_etiquetas/`): lee la hoja de
   cálculo, valida códigos, calcula el layout y genera PDFs. Portable y sin dependencias
   de escritorio.
+- **Lectura adaptativa**: las columnas de **código y descripción** y la fila de
+  **encabezado** se detectan solas (`DetectorColumnas`: sinónimos de encabezado y
+  heurística de contenido), con cualquier orden de columnas y con columnas de más
+  (p. ej. "Existencias"). ``columnas: {codigo: 0, descripcion: 2}`` como override.
+- **"Abrir con PernoLabel"**: la GUI acepta un archivo como argumento
+  (`bin/pernolabel_gui hoja.xlsx`), listo como acción de apertura en el menú
+  contextual del gestor de archivos.
 - **Código Code128 y/o QR**: por etiqueta/configuración se elige **Code128 (barras)**,
   **QR** o **ambos** (barras a la izquierda + QR a la derecha). El QR codifica el mismo
   código de producto (nivel M, `rqrcode`).
@@ -144,11 +166,14 @@ código y descripción** y si hay fila de encabezado, según el documento:
 ## Ejecución (GUI)
 
 ```bash
-ruby bin/main.rb             # GUI GTK (requiere display X11)
-bin/pernolabel_gui           # igual, vía el iniciador de escritorio
-rake desktop                 # instala la entrada PernoLabel en el menú
-gtk-launch PernoLabel        # abre la app desde el menú de aplicaciones
+ruby bin/main.rb hoja.xlsx      # GUI GTK (requiere display X11); acepta archivo
+bin/pernolabel_gui hoja.xlsx    # igual, vía el iniciador de escritorio
+rake desktop                    # instala la entrada PernoLabel en el menú
+gtk-launch PernoLabel           # abre la app desde el menú de aplicaciones
 ```
+
+Con un archivo como argumento la app abre la hoja lista para generar (también
+usable como acción **"Abrir con PernoLabel"** del gestor de archivos).
 
 Flujo:
 1. Seleccionar la hoja de cálculo o CSV (`.xlsx` / `.xls` / `.xlsm` / `.ods` / `.csv`).
@@ -175,6 +200,7 @@ de columnas** en orden invertido/con columnas extra) y la máquina completa.
 El smoke test genera los 5 PDFs demo, comprueba que son 100×50 mm, verifica el contenido
 textual de cada PDF y ejercita los caminos negativos (encabezado, duplicados, código no
 imprimible, selección de hoja y CSV), incluidos los tipos de código `qr` y `ambos`.
+El **CI** (GitHub Actions) replica `rake test` en Ruby 3.1 y 3.2 sobre Ubuntu.
 
 ## Datos de ejemplo
 
@@ -186,6 +212,11 @@ fixtures ficticios (`data/demo/`), regenerables sin datos reales.
 ## Autor
 
 **Patricio Varela C.** (CA2OPX) · [ORCID 0009-0002-1087-9445](https://orcid.org/0009-0002-1087-9445) · [github.com/2674321](https://github.com/2674321)
+
+## Licencia
+
+**MIT** — ver [LICENSE](LICENSE). Libre uso, modificación y distribución con
+atribución.
 
 ## Licencia
 

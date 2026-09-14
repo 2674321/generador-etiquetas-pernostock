@@ -20,9 +20,12 @@ module GeneradorEtiquetas
     # Texto del desplegable de hoja mientras no se ha elegido archivo.
     HOJA_PLACEHOLDER = '(1ª hoja)'.freeze
 
-    def self.correr
+    # archivo_inicial: ruta opcional ya cargada en el selector (permite
+    # "abrir con PernoLabel" desde el gestor de archivos o ejecutar
+    # `bin/pernolabel_gui hoja.xlsx`).
+    def self.correr(archivo_inicial: nil)
       Gtk.init
-      app = new
+      app = new(archivo_inicial: archivo_inicial)
       app.ventana.signal_connect('destroy') { Gtk.main_quit }
       app.ventana.show_all
       Gtk.main
@@ -30,13 +33,24 @@ module GeneradorEtiquetas
 
     attr_reader :ventana
 
-    def initialize
+    def initialize(archivo_inicial: nil)
       @resultados = []
       construir_ui
       conectar_senales
+      cargar_archivo_inicial(archivo_inicial)
     end
 
     private
+
+    def cargar_archivo_inicial(ruta)
+      return if ruta.nil?
+
+      ruta = File.expand_path(ruta.to_s)
+      return unless File.file?(ruta)
+
+      @selector_archivo.filename = ruta
+      refrescar_hojas
+    end
 
     def construir_ui
       @ventana = Gtk::Window.new

@@ -4,4 +4,4 @@
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 require 'gui/aplicacion'
 
-GeneradorEtiquetas::Aplicacion.correr
+GeneradorEtiquetas::Aplicacion.correr(archivo_inicial: ARGV.first)

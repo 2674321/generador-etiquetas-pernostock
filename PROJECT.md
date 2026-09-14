@@ -27,12 +27,14 @@ conserva el espacio de nombres histórico `GeneradorEtiquetas`.
 
 ## Versión
 
-`v1.6.0` (reconstrucción con correcciones + selección de hoja + CSV + progreso y
+`v1.6.1` (reconstrucción con correcciones + selección de hoja + CSV + progreso y
 metadatos + lote configurable con vista previa paginada + Code128/QR/ambos +
 rebranding PernoLabel + iniciador de escritorio con icono + **lectura adaptativa:
 detección automática de columnas código/descripción y encabezado en
-XLSX/XLS/ODS/CSV** + GUI verificada headful). Histórico original: versión no
-determinada (variantes `main`, GTK, CLI, simple, Shoes → conservadas en `lib/legacy/`).
+XLSX/XLS/ODS/CSV** + "abrir con" en la GUI + **publicación como portafolio:
+CI en GitHub Actions, CONTRIBUTING/SECURITY, capturas en el README** + GUI
+verificada headful). Histórico original: versión no determinada (variantes
+`main`, GTK, CLI, simple, Shoes → conservadas en `lib/legacy/`).
 
 ## Runtime
 

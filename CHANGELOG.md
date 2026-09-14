@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.6.1] - 2026-09-14
+
+### Añadido
+- **"Abrir con PernoLabel"**: la GUI acepta un archivo como argumento
+  (`bin/pernolabel_gui hoja.xlsx` o `ruby bin/main.rb hoja.xlsx`); útil como
+  acción "Abrir con" en el gestor de archivos.
+- **Empaquetado de publicación** del repositorio (portafolio / código abierto):
+  - CI en GitHub Actions (`.github/workflows/ci.yml`): Ruby 3.1 y 3.2 sobre
+    Ubuntu, con las dependencias GTK3/Cairo/poppler y `rake test`; badge de
+    estado en el README.
+  - `CONTRIBUTING.md` (guía de estilo y pruebas) y `SECURITY.md`.
+  - Captura de la GUI con datos demo y ejemplos de etiquetas Code128/QR en el
+    README (`_scripts/dev/screenshot_gui.rb`).
+- Docs: README con badges (CI/licencia/Ruby), capturas y nota de "abrir con";
+  PROJECT y CHANGELOG actualizados. Versión `1.6.1`.
+
 ## [1.6.0] - 2026-09-14
 
 ### Añadido
