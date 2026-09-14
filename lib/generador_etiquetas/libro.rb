@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 module GeneradorEtiquetas
-  # Lectura portable de la hoja de cálculo (Roo).
-  # Columna A = código, columna B = descripción (opcional).
+  # Lectura portable de la hoja de cálculo (Roo). Las columnas de "código" y
+  # "descripción" se detectan automáticamente (DetectorColumnas) según la
+  # organización del documento (XLSX/XLS/ODS/CSV): funciona con la descripción
+  # antes que el código, con columnas adicionales o sin encabezado. Se puede
+  # forzar el mapeo con `columnas: {codigo: 0, descripcion: 2}`.
   class Libro
     EXTENSIONES = %w[.xlsx .xls .xlsm .ods .csv].freeze
 
@@ -10,8 +13,9 @@ module GeneradorEtiquetas
 
     attr_reader :ruta
 
-    def self.cargar(ruta_xlsx, omitir_encabezado: true, hoja: 0)
-      new(ruta_xlsx).leer(omitir_encabezado: omitir_encabezado, hoja: hoja)
+    def self.cargar(ruta_xlsx, omitir_encabezado: true, hoja: 0, columnas: nil)
+      new(ruta_xlsx).leer(omitir_encabezado: omitir_encabezado, hoja: hoja,
+                          columnas: columnas)
     end
 
     # Nombres de las hojas del libro (para selección manual).
@@ -28,20 +32,34 @@ module GeneradorEtiquetas
     # Devuelve [+filas+, +encabezado_omitido+].
     # Cada fila es {codigo:, descripcion:, fila:}. Las celdas vacías se
     # devuelven igualmente para que el reporte pueda indicarlas; las filas
-    # completamente vacías se omiten del reporte.
-    def leer(omitir_encabezado: true, hoja: 0)
+    # completamente vacías se omiten. `columnas:` permite forzar el mapeo
+    # {codigo: índice, descripcion: índice} en documentos atípicos.
+    def leer(omitir_encabezado: true, hoja: 0, columnas: nil)
       validar_ruta!
       libro = Roo::Spreadsheet.open(ruta)
       seleccionada = elegir_hoja(libro, hoja)
-      filas = []
+      matriz = (seleccionada.first_row..seleccionada.last_row).map do |numero_fila|
+        celdas = seleccionada.row(numero_fila).to_a.map { |valor| celda(valor) }
+        [numero_fila, celdas]
+      end
 
-      (seleccionada.first_row..seleccionada.last_row).each do |numero_fila|
-        datos = seleccionada.row(numero_fila).to_a
-        codigo = celda(datos, 0)
-        descripcion = celda(datos, 1)
+      roles = mapear_roles(matriz, columnas)
+      indice_codigo = roles[:codigo].to_i
+      indice_descripcion = roles[:descripcion].to_i
+
+      filas = []
+      matriz.each do |numero_fila, celdas|
+        codigo = celdas[indice_codigo].to_s
+        descripcion = celdas[indice_descripcion].to_s
 
         next if fila_vacia?(codigo, descripcion)
-        next if omitir_encabezado && filas.empty? && solo_letras_sin_digitos?(codigo) && !descripcion.empty?
+
+        if omitir_encabezado && roles[:encabezado]
+          next if numero_fila == roles[:encabezado]
+        elsif omitir_encabezado && filas.empty? &&
+              solo_letras_sin_digitos?(codigo) && !descripcion.empty?
+          next
+        end
 
         filas << Fila.new(codigo: codigo, descripcion: descripcion, fila: numero_fila)
       end
@@ -50,6 +68,17 @@ module GeneradorEtiquetas
     end
 
     private
+
+    def mapear_roles(matriz, columnas)
+      if columnas
+        hash = columnas.is_a?(Hash) ? columnas : { codigo: columnas[0], descripcion: columnas[1] }
+        { codigo: hash[:codigo] || 0,
+          descripcion: hash[:descripcion] || 1,
+          encabezado: nil }
+      else
+        DetectorColumnas.new.roles(matriz)
+      end
+    end
 
     def validar_ruta!
       raise ArgumentError, "Archivo no encontrado: #{ruta}" unless File.exist?(ruta)
@@ -60,8 +89,7 @@ module GeneradorEtiquetas
       raise ArgumentError, "Formato no soportado (#{extension}). Se espera XLS/XLSX/ODS/CSV."
     end
 
-    def celda(datos, indice)
-      valor = datos[indice]
+    def celda(valor)
       valor.is_a?(Numeric) ? valor.to_s : valor.to_s.strip
     rescue StandardError
       ""

@@ -204,8 +204,9 @@ module GeneradorEtiquetas
         Uso:
           ruby bin/pernolabel ARCHIVO [OPCIONES]
 
-        Genera etiquetas Code128 (PDF) a partir de una hoja de cálculo.
-        Columna A = código · Columna B = descripción (opcional).
+        Genera etiquetas Code128 (PDF) a partir de una hoja de cálculo
+        (XLSX/XLS/ODS/CSV). Las columnas de código y descripción se detectan
+        automáticamente (encabezados o contenido); no depende de su orden.
 
         OPCIONES:
           -o, --salida DIR      Directorio de salida (por defecto ./salida)

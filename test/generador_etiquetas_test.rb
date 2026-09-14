@@ -169,6 +169,34 @@ module GeneradorEtiquetas
         assert_raises(ArgumentError) { Libro.cargar(ruta) }
       end
     end
+
+    def test_deteccion_columnas_invertidas_con_encabezado
+      filas, _ = Libro.cargar(File.join(ROOT, 'data/demo/codigos_invertidos.csv'))
+      assert_equal %w[PET-1001 PET-1002 PET-1003], filas.map(&:codigo)
+      assert_equal ['Batería demo 001', 'Tornillo M8 x40', 'Tuerca 10mm'],
+                   filas.map(&:descripcion)
+    end
+
+    def test_deteccion_columnas_invertidas_sin_encabezado
+      filas, _ = Libro.cargar(File.join(ROOT, 'data/demo/codigos_sin_encabezado_invertido.csv'))
+      assert_equal %w[PET-1001 PET-1002 PET-1003], filas.map(&:codigo)
+      assert_equal ['Batería demo 001', 'Tornillo M8 x40', 'Tuerca 10mm'],
+                   filas.map(&:descripcion)
+    end
+
+    def test_deteccion_descripcion_en_columna_extra
+      filas, _ = Libro.cargar(File.join(ROOT, 'data/demo/codigos_extra.csv'))
+      assert_equal %w[PET-1001 PET-1002 PET-1003], filas.map(&:codigo)
+      assert_equal ['Batería demo 001', 'Tornillo M8 x40', 'Tuerca 10mm'],
+                   filas.map(&:descripcion)
+    end
+
+    def test_columnas_explicitas
+      filas, _ = Libro.cargar(File.join(ROOT, 'data/demo/codigos_demo.csv'),
+                              columnas: { codigo: 0, descripcion: 1 })
+      assert_equal ['PET-1001', 'PET-1001', 'PET-2001', 'PET-2001', 'PET-Ñ001'],
+                   filas.map(&:codigo)
+    end
   end
 
   class TestLoteEtiqueta < Minitest::Test

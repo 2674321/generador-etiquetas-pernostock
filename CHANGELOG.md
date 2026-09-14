@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.6.0] - 2026-09-14
+
+### Añadido
+- **Detección automática de columnas** (`DetectorColumnas`): `Libro` ya no exige
+  que el código esté en la columna A y la descripción en la B. Según el
+  documento (XLSX/XLS/ODS/CSV) se localizan por sí solas:
+  - Encabezado: sinónimos exactos de "código" y "descripción" ("Código", "SKU",
+    "Parte", "Referencia", "Descripción", "Nombre", …) sin importar el orden ni
+    las columnas sobrantes.
+  - Si no hay encabezado (o está parcialmente etiquetado): heurística por
+    contenido (códigos = breves, sin espacios, con dígitos, mayúsculas;
+    descripciones = texto con palabras/espacios).
+  - Sigue omitiendo la fila de encabezado y las filas vacías.
+- API de override para documentos atípicos:
+  `Libro.cargar(ruta, columnas: {codigo: 0, descripcion: 2})`.
+- Fixtures nuevos para la detección: `codigos_invertidos.csv` (descripción
+  primero, con encabezado), `codigos_sin_encabezado_invertido.csv` (sin
+  encabezado) y `codigos_extra.csv` (columna "Existencias" en medio).
+- Tests: 4 casos en `TestLibro` (invertido con/sin encabezado, columna extra,
+  columnas explícitas) y bloque de detección en `prueba_core`. Suite:
+  **47 runs / 121 aserciones**, 0 fallos; `gui_smoke` 24/24. Versión `1.6.0`.
+
 ## [1.5.1] - 2026-09-12
 
 ### Corregido

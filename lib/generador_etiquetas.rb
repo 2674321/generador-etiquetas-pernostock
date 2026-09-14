@@ -13,6 +13,7 @@ require 'fileutils'
 
 require_relative 'generador_etiquetas/version'
 require_relative 'generador_etiquetas/dimensiones'
+require_relative 'generador_etiquetas/detector_columnas'
 require_relative 'generador_etiquetas/etiqueta'
 require_relative 'generador_etiquetas/libro'
 require_relative 'generador_etiquetas/layout'

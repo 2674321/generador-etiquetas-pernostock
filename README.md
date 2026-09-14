@@ -78,7 +78,8 @@ los códigos desde una hoja de cálculo (Excel/ODS/CSV).
 │   ├── generador_etiquetas/       ← NÚCLEO (sin GUI)
 │   │   ├── dimensiones.rb         ← geometría y conversión mm→pt
 │   │   ├── etiqueta.rb            ← modelo, validación, code128 y QR
-│   │   ├── libro.rb               ← lectura de la hoja (Roo)
+│   │   ├── detector_columnas.rb   ← localiza código/descripción y encabezado
+│   │   ├── libro.rb               ← lectura de la hoja (Roo + detector)
 │   │   ├── layout.rb              ← composición (barras/QR, top-down)
 │   │   ├── dibujo.rb              ← flujo de dibujo compartido
 │   │   ├── pdf.rb                 ← destino PDF (Prawn)
@@ -124,6 +125,22 @@ ruby bin/pernolabel --help
 Escribe los PDF en `./salida` por defecto (portable). Muestra un reporte por fila y
 un resumen al final. `bin/etiquetas_cli` sigue disponible como alias del CLI.
 
+## Lectura adaptativa (columnas y encabezado)
+
+No hay que preparar la hoja: `Libro` detecta automáticamente **qué columnas son
+código y descripción** y si hay fila de encabezado, según el documento:
+
+- Con encabezado reconocible ("Código", "SKU", "Parte", "Referencia", … / "Descripción",
+  "Nombre", …): se localiza la columna por sinónimos, en **cualquier orden** y aunque
+  haya columnas de más (p. ej. "Existencias").
+- Sin encabezado: se infiere por el contenido (los códigos son breves, sin espacios y
+  con dígitos; las descripciones llevan palabras y espacios).
+- Funciona igual para XLSX/XLS/XLSM/ODS/CSV (fixtures de ejemplo en `data/demo/`: el
+  clásico A=código, `codigos_invertidos.csv`, `codigos_sin_encabezado_invertido.csv` y
+  `codigos_extra.csv`).
+- Documentos atípicos admiten forzar el mapeo por API:
+  `Libro.cargar(ruta, columnas: {codigo: 0, descripcion: 2})`.
+
 ## Ejecución (GUI)
 
 ```bash
@@ -153,7 +170,8 @@ ruby _scripts/dev/prueba_core.rb
 ```
 
 La suite `test/generador_etiquetas_test.rb` (minitest) cubre validación y Code128,
-dimensiones, composición, lectura (XLSX/CSV/hojas/filas vacías) y la máquina completa.
+dimensiones, composición, lectura (XLSX/CSV/hojas/filas vacías, **detección automática
+de columnas** en orden invertido/con columnas extra) y la máquina completa.
 El smoke test genera los 5 PDFs demo, comprueba que son 100×50 mm, verifica el contenido
 textual de cada PDF y ejercita los caminos negativos (encabezado, duplicados, código no
 imprimible, selección de hoja y CSV), incluidos los tipos de código `qr` y `ambos`.

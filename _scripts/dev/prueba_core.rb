@@ -178,6 +178,29 @@ else
   puts "  (no existe #{DEMO_CSV}; se omite)"
 end
 
+puts "== Detección automática de columnas =="
+INVERTIDO = "data/demo/codigos_invertidos.csv"
+SIN_ENCABEZADO = "data/demo/codigos_sin_encabezado_invertido.csv"
+EXTRA = "data/demo/codigos_extra.csv"
+if File.exist?(INVERTIDO) && File.exist?(SIN_ENCABEZADO) && File.exist?(EXTRA)
+  filas_i, = GeneradorEtiquetas::Libro.cargar(INVERTIDO)
+  comprobar(filas_i.map(&:codigo) == %w[PET-1001 PET-1002 PET-1003],
+            "descripción antes que código (con encabezado) → códigos detectados")
+  comprobar(filas_i.first.descripcion == "Batería demo 001",
+            "y descripción tomada de la columna 'Descripción'")
+  filas_s, = GeneradorEtiquetas::Libro.cargar(SIN_ENCABEZADO)
+  comprobar(filas_s.map(&:codigo) == %w[PET-1001 PET-1002 PET-1003],
+            "sin encabezado y con descripción primero → códigos detectados por contenido")
+  filas_e, = GeneradorEtiquetas::Libro.cargar(EXTRA)
+  comprobar(filas_e.first.codigo == "PET-1001" && filas_e.first.descripcion == "Batería demo 001",
+            "columna extra 'Existencias' no interfiere (descripción en col 2)")
+  filas_demo, = GeneradorEtiquetas::Libro.cargar(DEMO)
+  comprobar(filas_demo.map(&:codigo) == %w[PET-1001 PET-1002 PET-1003 PET-1004 PET-1005],
+            "XLSX sin encabezado clásico (A=código, B=descripción) sigue funcionando")
+else
+  puts "  (faltan fixtures de detección; se omite)"
+end
+
 puts
 if FALLOS.empty?
   puts "PRUEBA DEL CORE: CORRECTA"

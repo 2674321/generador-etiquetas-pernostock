@@ -16,11 +16,12 @@ module GeneradorEtiquetas
 
     # procesar(ruta, filtrar: nil, cantidad: nil, permitir_duplicados: false,
     #          omitir_encabezado: true, hoja: 0, en_progreso: nil, lote: false)
-    #   ruta               → XLSX/XLS/ODS/CSV con códigos en columna A y descripción en B.
+    #   ruta               → XLSX/XLS/ODS/CSV; columnas de código y descripción
+    #                        detectadas automáticamente (libro.rb).
     #   filtrar            → texto; solo se procesan códigos/descripciones que lo contengan.
     #   cantidad           → máx. etiquetas a generar (nil = todas).
     #   permitir_duplicados→ si false, los códigos repetidos se omiten y se reportan.
-    #   omitir_encabezado  → si true, salta una primera fila tipo "Código/ETIQUETA/SKU".
+    #   omitir_encabezado  → si true, salta la fila de encabezado detectada.
     #   hoja               → índice (0, 1, …) o nombre de la hoja a leer.
     #   en_progreso        → callback para UI; se invoca como at(hechas, total)
     #                        tras cada fila (nil/no-op si no se pasa).
