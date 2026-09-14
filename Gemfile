@@ -9,3 +9,7 @@ gem 'roo'
 gem 'barby'
 gem 'rqrcode'
 gem 'tty-progressbar'
+
+group :test do
+  gem 'minitest'
+end

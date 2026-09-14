@@ -36,7 +36,7 @@
   encabezado) y `codigos_extra.csv` (columna "Existencias" en medio).
 - Tests: 4 casos en `TestLibro` (invertido con/sin encabezado, columna extra,
   columnas explícitas) y bloque de detección en `prueba_core`. Suite:
-  **47 runs / 121 aserciones**, 0 fallos; `gui_smoke` 24/24. Versión `1.6.0`.
+  **47 runs / 149 aserciones**, 0 fallos; `gui_smoke` 24/24. Versión `1.6.0`.
 
 ## [1.5.1] - 2026-09-12
 

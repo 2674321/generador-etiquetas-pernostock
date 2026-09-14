@@ -25,4 +25,4 @@ jobs:
           bundler-cache: true
 
       - name: Suite de pruebas (núcleo sin GUI)
-        run: rake test
+        run: bundle exec rake test
