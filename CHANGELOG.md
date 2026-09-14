@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.6.2] - 2026-09-14
+
+### Mejorado
+- **Feedback visual con documentos grandes**: al procesar muchos códigos la GUI
+  ya no deja una espera muda. Mientras lee y genera muestra un **spinner** y una
+  **barra de progreso en vivo** con contador "Generando… N de M" y el tiempo
+  transcurrido (por ejemplo "Generando… 1.234 de 2.500 · 12 s"), con
+  actualización fluida de la interfaz (throttling por eventos en cola).
+- **Expansión vertical de la zona de resultados**: la lista (Estado/Código/
+  Descripción/Archivo·Nota) y el panel de vista previa con "Abrir el PDF
+  generado" ahora se estiran al agrandar la ventana; ya no solo se ajusta el
+  ancho con el divisor. La ventana abre por defecto en 1180x820 (mínimo
+  900x620).
+- Herramienta de desarrollo `_scripts/dev/probe_progreso.rb` que genera un CSV
+  sintético de 2.500 etiquetas y verifica spinner, fracciones intermedias y
+  contador en vivo.
+
 ## [1.6.1] - 2026-09-14
 
 ### Añadido

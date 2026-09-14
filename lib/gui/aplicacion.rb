@@ -55,7 +55,8 @@ module GeneradorEtiquetas
     def construir_ui
       @ventana = Gtk::Window.new
       @ventana.set_title('PernoLabel — Etiquetas Pernostock')
-      @ventana.set_default_size(980, 640)
+      @ventana.set_default_size(1180, 820)
+      @ventana.set_size_request(900, 620)
       @ventana.border_width = 10
       poner_icono_ventana
 
@@ -64,6 +65,8 @@ module GeneradorEtiquetas
       caja_principal.pack_start(construir_barra_opciones, expand: false)
 
       paned = Gtk::Paned.new(:horizontal)
+      paned.hexpand = true
+      paned.vexpand = true
       paned.pack1(construir_panel_lista, resize: true, shrink: false)
       paned.pack2(construir_panel_previa, resize: true, shrink: false)
       paned.position = 560
@@ -71,9 +74,22 @@ module GeneradorEtiquetas
 
       @barra_estado = Gtk::Label.new('Listo. Selecciona un archivo y pulsa Generar.')
       @barra_estado.xalign = 0.0
+
+      # Indicador visual de trabajo: spinner + barra con contador. Se muestra
+      # durante la generación (que corre en hilo) y da feedback continuo.
+      @spinner = Gtk::Spinner.new
+      @spinner.no_show_all = true
       @barra_progreso = Gtk::ProgressBar.new
       @barra_progreso.no_show_all = true
-      caja_principal.pack_start(@barra_progreso, expand: false)
+      @barra_progreso.show_text = true
+      @barra_progreso.hexpand = true
+      @barra_progreso.set_size_request(-1, 22)
+      @contenedor_avance = Gtk::Box.new(:horizontal, 8)
+      @contenedor_avance.no_show_all = true
+      @contenedor_avance.pack_start(@spinner, expand: false)
+      @contenedor_avance.pack_start(@barra_progreso, expand: true)
+
+      caja_principal.pack_start(@contenedor_avance, expand: false)
       caja_principal.pack_start(@barra_estado, expand: false)
 
       ventana.add(caja_principal)
@@ -220,12 +236,16 @@ module GeneradorEtiquetas
       ajuste = Gtk::Adjustment.new(0, 0, 1, 1, 1, 0)
       @vista.headers_visible = true
       @scrolled_lista = Gtk::ScrolledWindow.new(nil, nil)
+      @scrolled_lista.hexpand = true
+      @scrolled_lista.vexpand = true
       @scrolled_lista.add(@vista)
       @scrolled_lista
     end
 
     def construir_panel_previa
       caja = Gtk::Box.new(:vertical, 6)
+      caja.hexpand = true
+      caja.vexpand = true
 
       @dibujo = Gtk::DrawingArea.new
       @dibujo.hexpand = true
@@ -286,9 +306,9 @@ module GeneradorEtiquetas
       )
 
       @boton_generar.sensitive = false
-      @barra_estado.text = 'Generando…'
-      @barra_progreso.show_now
-      @barra_progreso.fraction = 0.0
+      @ultimo_avance = nil
+      @inicio_generacion = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      iniciar_avance('Generando… leyendo el archivo')
 
       refrescar_hojas if @selector_hoja.active_text.to_s.include?(HOJA_PLACEHOLDER)
 
@@ -308,8 +328,7 @@ module GeneradorEtiquetas
             lote_hueco_pt: Dimensiones.pt(@campo_hueco_lote.value.to_f),
             tipo_codigo: tipo_codigo_actual,
             en_progreso: proc do |hechas, total|
-              fraccion = total.zero? ? 0.0 : hechas.to_f / total
-              GLib::Idle.add { @barra_progreso.fraction = fraccion; false }
+              reportar_avance(hechas, total)
             end
           )
         rescue StandardError => e
@@ -319,9 +338,43 @@ module GeneradorEtiquetas
       end
     end
 
+    # Feedback visual continuo: spinner + barra con "N de M" y tiempo transcurrido.
+    # La lectura del libro grande ocurre antes del primer callback: el spinner y
+    # el mensaje 'leyendo el archivo' ya indican actividad durante ese tramo.
+    def iniciar_avance(texto)
+      @spinner.show_now
+      @spinner.start
+      @contenedor_avance.show_now
+      @barra_progreso.fraction = 0.0
+      @barra_progreso.text = ''
+      @barra_estado.text = texto
+    end
+
+    # El callback corre en el hilo de generación; solo se encola una actualización
+    # de UI como mucho cada ~80 ms (o la última) para no saturar la cola idle.
+    def reportar_avance(hechas, total)
+      ahora = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      umbral = @ultimo_avance ? @ultimo_avance + 0.08 : ahora
+      ultima = total.zero? || hechas >= total
+      return if ahora < umbral && !ultima
+
+      @ultimo_avance = ahora
+      fraccion = total.zero? ? 0.0 : hechas.to_f / total
+      segundos = (ahora - (@inicio_generacion || ahora)).round(1)
+      GLib::Idle.add do
+        @barra_progreso.fraction = fraccion
+        @barra_progreso.text = "#{hechas} de #{total}"
+        @barra_estado.text = "Generando… #{hechas} de #{total} · #{segundos}s"
+        false
+      end
+      nil
+    end
+
     def aplicar_resultado(resultado)
+      @spinner.stop
+      @spinner.hide
+      @contenedor_avance.hide
       @boton_generar.sensitive = true
-      @barra_progreso.hide
       if resultado.is_a?(StandardError)
         @barra_estado.text = 'Error'
         aviso("Error al generar:\n#{resultado.message}")
