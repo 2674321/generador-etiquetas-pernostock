@@ -200,7 +200,7 @@ de columnas** en orden invertido/con columnas extra) y la máquina completa.
 El smoke test genera los 5 PDFs demo, comprueba que son 100×50 mm, verifica el contenido
 textual de cada PDF y ejercita los caminos negativos (encabezado, duplicados, código no
 imprimible, selección de hoja y CSV), incluidos los tipos de código `qr` y `ambos`.
-El **CI** (GitHub Actions) replica `rake test` en Ruby 3.1 y 3.2 sobre Ubuntu.
+El **CI** (GitHub Actions) replica `rake test` en Ruby 3.2 sobre Ubuntu.
 
 ## Datos de ejemplo
 
