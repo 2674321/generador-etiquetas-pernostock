@@ -1,9 +1,21 @@
 # data/demo — Fixtures de prueba (ficticios)
 
 Este repositorio **no incluye** los archivos Excel originales de PernoStock Ltda.
-Los fixtures `.xlsx` son **ficticios** y están excluidos de git (`.gitignore`);
-si faltan, regenéralos así (`codigos_demo.csv` sí está versionado y no necesita
-regenerarse):
+Los fixtures de esta carpeta son **ficticios** y están **versionados** (el
+`.gitignore` exime `data/demo/*.xlsx`), de modo que `rake test` funciona en un
+clon limpio y en el CI sin regenerar nada.
+
+| Archivo | Contenido |
+|---|---|
+| `codigos_demo.xlsx` | 5 productos, sin encabezado (columna A=código, B=descripción) |
+| `codigos_demo.csv` | igual que el de problemas en CSV (encabezado + duplicados + inválida) |
+| `codigos_con_problemas.xlsx` | encabezado, 2 duplicados y 1 código no imprimible |
+| `codigos_dos_hojas.xlsx` | hojas "Principal" (con fila vacía) y "Secundaria" |
+| `codigos_invertidos.csv` | descripción antes que código, con encabezado |
+| `codigos_sin_encabezado_invertido.csv` | descripción antes que código, sin encabezado |
+| `codigos_extra.csv` | columna "Existencias" entre código y descripción |
+
+Para regenerar los `.xlsx` ficticios (equivalente a los versionados):
 
 ```bash
 python3 - <<'PY'

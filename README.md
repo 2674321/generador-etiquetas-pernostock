@@ -116,7 +116,7 @@ Etiquetas resultantes (Code128 y QR, 100×50 mm):
 ├── packaging/
 │   ├── PernoLabel.desktop.in      ← plantilla del lanzador (.desktop)
 │   └── icons/                     ← icono de la app (PNG generados con Cairo)
-├── data/demo/                     ← fixtures ficticios (no versionados)
+├── data/demo/                     ← fixtures ficticios versionados (autocontenido)
 └── docs/
     ├── gems.txt                   ← dependencias y requires
     ├── DEV-SETUP.md               ← reproducción del entorno
@@ -207,7 +207,8 @@ El **CI** (GitHub Actions) replica `rake test` en Ruby 3.2 sobre Ubuntu.
 Este repositorio **no incluye** los archivos Excel originales (lista maestra de precios y
 libro de recepción de baterías), que contienen datos comerciales sensibles de PernoStock
 Ltda. y se conservan únicamente en el material histórico local. Para probar se usan
-fixtures ficticios (`data/demo/`), regenerables sin datos reales.
+fixtures ficticios (**versionados** en `data/demo/`), así `rake test` funciona en un
+clon limpio y en el CI sin regenerar nada.
 
 ## Autor
 

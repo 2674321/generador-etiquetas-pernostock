@@ -2,8 +2,11 @@
 *.xlsx
 *.xls
 
-# Datos de demo / temporales
+# Fixtures de demo (ficticios) sí se versionan para que el repo sea autocontenido
 data/demo/*.xlsx
+!data/demo/*.xlsx
+
+# Datos de demo / temporales
 tmp/
 
 # Artefactos de entorno / editor
