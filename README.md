@@ -16,15 +16,21 @@ de columnas**.
 > etiquetas a tamaño real corregidas, códigos Code128/QR y un panel de resultados en
 > la GUI.
 
-## Captura
+## Capturas
 
-![GUI de PernoLabel con resultados y vista previa](docs/screenshot-gui.png)
+Ventana principal de la GUI:
 
-Etiquetas resultantes (Code128 y QR, 100×50 mm):
+![Ventana principal](docs/captura-ventana-principal.png)
 
-| Code128 | QR |
-|---|---|
-| ![Etiqueta Code128](docs/etiqueta-code128.png) | ![Etiqueta QR](docs/etiqueta-qr.png) |
+Icono de la app en el menú del OS:
+
+![Icono en el menú del OS](docs/captura-icono-en-menu-os.png)
+
+Ejemplos de etiquetas generadas (100×50 mm):
+
+| QR | Code128 | QR + Code128 |
+|---|---|---|
+| ![Ejemplo QR](docs/ejemplo-qr.png) | ![Ejemplo Code128](docs/ejemplo-codigo-barras.png) | ![Ejemplo QR+Code128](docs/ejemplo-qr-codigo-barras.png) |
 
 ## Características
 
