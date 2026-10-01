@@ -9,12 +9,9 @@ Aplicación de escritorio en **Ruby + GTK3** para generar etiquetas de producto 
 los códigos desde una hoja de cálculo (Excel/ODS/CSV) con **detección automática
 de columnas**.
 
-> **⚠️ Software recuperado de material histórico de trabajo** (enero–febrero 2024).
-> Fue desarrollado como parte de un proyecto de formación (Técnico en Programación)
-> para **PernoStock Ltda.** El repositorio se publica como referencia y para preservar
-> el código; esta iteración además **reconstruye el sistema** con un núcleo portátil,
-> etiquetas a tamaño real corregidas, códigos Code128/QR y un panel de resultados en
-> la GUI.
+> Proyecto originado en material de formación de 2024 para **PernoStock Ltda.**,
+> conservado y modernizado como referencia técnica: núcleo portátil, etiquetas a
+> tamaño real, Code128/QR y una interfaz de escritorio funcional.
 
 ## Capturas
 
