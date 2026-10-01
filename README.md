@@ -1,5 +1,7 @@
 # PernoLabel — Etiquetas Pernostock
 
+**Autor:** [Patricio Varela C.](https://github.com/2674321) · **ORCID:** [0009-0002-1087-9445](https://orcid.org/0009-0002-1087-9445) · **Licencia:** [MIT](LICENSE) · **Citación:** [CITATION.cff](CITATION.cff)
+
 [![CI](https://github.com/2674321/generador-etiquetas-pernostock/actions/workflows/ci.yml/badge.svg)](https://github.com/2674321/generador-etiquetas-pernostock/actions/workflows/ci.yml)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 [![Ruby](https://img.shields.io/badge/Ruby-3.2-red.svg)](.ruby-version)
@@ -212,13 +214,4 @@ libro de recepción de baterías), que contienen datos comerciales sensibles de 
 Ltda. y se conservan únicamente en el material histórico local. Para probar se usan
 fixtures ficticios (**versionados** en `data/demo/`), así `rake test` funciona en un
 clon limpio y en el CI sin regenerar nada.
-
-## Autor
-
-**Patricio Varela C.** (CA2OPX) · [ORCID 0009-0002-1087-9445](https://orcid.org/0009-0002-1087-9445) · [github.com/2674321](https://github.com/2674321)
-
-## Licencia y citación
-
-**MIT** — ver [LICENSE](LICENSE). Libre uso, modificación y distribución con
-atribución. Metadatos de autoría y ORCID: [CITATION.cff](CITATION.cff).
 
