@@ -217,11 +217,8 @@ clon limpio y en el CI sin regenerar nada.
 
 **Patricio Varela C.** (CA2OPX) · [ORCID 0009-0002-1087-9445](https://orcid.org/0009-0002-1087-9445) · [github.com/2674321](https://github.com/2674321)
 
-## Licencia
+## Licencia y citación
 
 **MIT** — ver [LICENSE](LICENSE). Libre uso, modificación y distribución con
-atribución.
+atribución. Metadatos de autoría y ORCID: [CITATION.cff](CITATION.cff).
 
-## Licencia
-
-MIT — ver [LICENSE](LICENSE).
